@@ -34,7 +34,7 @@ Small documentation updates, task-board changes, and review notes are acceptable
 
 ## Recommended Workflow
 
-1. Review the task board, project plan, and current repository state.
+1. Review `AGENTS.md`, the task board, the project plan, and the current repository state.
 2. Suggest the next logical task with a short justification.
 3. Wait for approval of the suggested task.
 4. Generate an operator starter prompt using the approved task scope.

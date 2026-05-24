@@ -22,7 +22,7 @@ Agents should treat this as a real engineering repository. Make focused, increme
 
 ## Architectural Expectations
 
-- Preserve the monorepo structure under `apps/`, `packages/`, `prisma/`, and `docs/`.
+- Preserve the monorepo structure under `apps/`, `packages/`, `prisma/`, `docs/`, and `agent/`.
 - Keep backend architecture layered: routes, validators, controllers, services, repositories, and Prisma.
 - Keep OTP business rules in service-level code, not in route handlers or frontend code.
 - Keep shared types and utilities in `packages/shared` when they are genuinely shared.

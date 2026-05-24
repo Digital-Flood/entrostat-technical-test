@@ -48,12 +48,12 @@ routes -> validators -> controllers -> services -> repositories -> Prisma
 
 ## Expected API Endpoints
 
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `GET` | `/health` | Confirm that the API is running. |
-| `POST` | `/otp/request` | Request a new OTP for a user identifier. |
-| `POST` | `/otp/resend` | Resend or reissue an OTP within configured limits. |
-| `POST` | `/otp/verify` | Verify a submitted OTP. |
+| Method | Endpoint       | Purpose                                            |
+| ------ | -------------- | -------------------------------------------------- |
+| `GET`  | `/health`      | Confirm that the API is running.                   |
+| `POST` | `/otp/request` | Request a new OTP for a user identifier.           |
+| `POST` | `/otp/resend`  | Resend or reissue an OTP within configured limits. |
+| `POST` | `/otp/verify`  | Verify a submitted OTP.                            |
 
 Endpoint names may be adjusted during implementation if the route structure needs clearer grouping.
 

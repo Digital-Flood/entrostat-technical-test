@@ -8,6 +8,19 @@
   ],
   "scripts": {
     "dev": "echo \"Development scripts will be added in a later step.\"",
-    "test": "echo \"Test scripts will be added in a later step.\""
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.9.1",
+    "eslint": "^10.4.0",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.4",
+    "vitest": "^4.1.7"
   }
 }

@@ -46,6 +46,11 @@ The project is structured as a small monorepo with a TypeScript Express API, a V
 │   ├── architecture.md
 │   ├── project-plan.md
 │   └── test-plan.md
+├── agent/
+│   ├── controller.md
+│   ├── operator-rules.md
+│   ├── task-board.md
+│   └── task-template.md
 ├── docker-compose.yml
 ├── package.json
 ├── .env.example
@@ -54,7 +59,20 @@ The project is structured as a small monorepo with a TypeScript Express API, a V
 
 ## Local Setup
 
-Local setup commands will be added once the API, web app, Prisma schema, and package scripts are implemented.
+Install dependencies from the repository root:
+
+```sh
+npm install
+```
+
+Root tooling commands are available before the application packages are implemented:
+
+```sh
+npm run typecheck
+npm run lint
+npm run format:check
+npm test
+```
 
 Expected local workflow:
 
@@ -80,6 +98,6 @@ Planned deployment targets:
 
 ## Project Status
 
-Step 1 complete: project structure and documentation skeleton.
+Steps 1, 2, and 3 complete: project structure, documentation skeleton, agent orchestration documentation alignment, and root tooling foundation.
 
-The next step is agent orchestration documentation review and final alignment. Implementation of OTP logic, API routes, frontend screens, Prisma schema, and tests is intentionally deferred to later steps.
+The next step is the API package scaffold with Express, TypeScript, health route, middleware, and error handling. Implementation of OTP logic, frontend screens, Prisma schema, and deployment configuration is intentionally deferred to later steps.
