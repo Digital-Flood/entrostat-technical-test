@@ -22,6 +22,7 @@
 - A verified OTP cannot be used again.
 - Incorrect OTP submissions are rejected.
 - Resend requests respect the configured resend window.
+- Resend windows are currently measured from the latest OTP record in the request group, and the exact boundary remains valid.
 - Resend requests respect the maximum resend count.
 - Request attempts respect the maximum requests per hour.
 

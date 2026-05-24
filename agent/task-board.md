@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Ready for Step 11: Cross-flow API test pass.
+Ready for Step 12: Web app scaffold with Vite React, Tailwind CSS, and base layout.
 
 ## Completed
 
@@ -16,6 +16,7 @@ Ready for Step 11: Cross-flow API test pass.
 - Step 8: OTP request service and API route with expiry metadata, request limits, latest-code supersession, configured delivery, demo inbox capture, and focused tests.
 - Step 9: OTP resend service and API route with resend window, maximum resend count, latest-code supersession, configured delivery, demo inbox capture, and focused tests.
 - Step 10: OTP verification service and API route with latest-code-only validation, expiry rejection, single-use enforcement, conditional persistence, and focused tests.
+- Step 11: Cross-flow API test pass covering request/resend/verify interactions, OTP edge cases, delivery capture, timing boundaries, and route-level internal error envelopes.
 
 ## In Progress
 
@@ -23,7 +24,6 @@ Ready for Step 11: Cross-flow API test pass.
 
 ## Next
 
-- Step 11: Cross-flow API test pass for OTP edge cases, delivery modes, timing boundaries, and database error paths.
 - Step 12: Web app scaffold with Vite React, Tailwind CSS, and base layout.
 - Step 13: Frontend OTP request, resend, verification, and demo inbox interface wired to structured API responses.
 - Step 14: Deployment configuration, Resend environment setup, and final documentation pass.
