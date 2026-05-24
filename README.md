@@ -65,9 +65,10 @@ Install dependencies from the repository root:
 npm install
 ```
 
-Root tooling commands are available before the application packages are implemented:
+Root tooling commands are available from the repository root:
 
 ```sh
+npm run dev
 npm run typecheck
 npm run lint
 npm run format:check
@@ -98,6 +99,6 @@ Planned deployment targets:
 
 ## Project Status
 
-Steps 1, 2, and 3 complete: project structure, documentation skeleton, agent orchestration documentation alignment, and root tooling foundation.
+Steps 1, 2, 3, and 4 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, and the initial Express API scaffold with a health route.
 
-The next step is the API package scaffold with Express, TypeScript, health route, middleware, and error handling. Implementation of OTP logic, frontend screens, Prisma schema, and deployment configuration is intentionally deferred to later steps.
+The next step is the shared API contract package for response envelopes, error codes, and validation helpers. Implementation of OTP logic, frontend screens, Prisma schema, and deployment configuration is intentionally deferred to later steps.

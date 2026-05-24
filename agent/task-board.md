@@ -2,13 +2,14 @@
 
 ## Current Phase
 
-Ready for Step 4: API package scaffold with Express, TypeScript, health route, middleware, and error handling.
+Ready for Step 5: Shared API contract package for response envelopes, error codes, and validation helpers.
 
 ## Completed
 
 - Step 1: Project scaffold and documentation.
 - Step 2: Agent orchestration documentation review and final alignment.
 - Step 3: Root TypeScript, workspace, linting, formatting, and test runner foundation.
+- Step 4: API package scaffold with Express, TypeScript, health route, middleware, and error handling.
 
 ## In Progress
 
@@ -16,7 +17,6 @@ Ready for Step 4: API package scaffold with Express, TypeScript, health route, m
 
 ## Next
 
-- Step 4: API package scaffold with Express, TypeScript, health route, middleware, and error handling.
 - Step 5: Shared API contract package for response envelopes, error codes, and validation helpers.
 - Step 6: API route test harness with Supertest and baseline health/error tests.
 - Step 7: Prisma schema foundation, database connection setup, migration workflow, and repository layer.
