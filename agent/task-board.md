@@ -20,13 +20,13 @@ Ready for Step 7: Prisma schema foundation, database connection setup, migration
 ## Next
 
 - Step 7: Prisma schema foundation, database connection setup, migration workflow, and repository layer.
-- Step 8: OTP request service and API route with expiry metadata, request limits, latest-code supersession, and focused tests.
-- Step 9: OTP resend service and API route with resend window, maximum resend count, latest-code supersession, and focused tests.
+- Step 8: OTP request service and API route with expiry metadata, request limits, latest-code supersession, configured delivery, demo inbox capture, and focused tests.
+- Step 9: OTP resend service and API route with resend window, maximum resend count, latest-code supersession, configured delivery, and focused tests.
 - Step 10: OTP verification service and API route with latest-code-only validation, expiry rejection, single-use enforcement, and focused tests.
-- Step 11: Cross-flow API test pass for OTP edge cases, timing boundaries, and database error paths.
+- Step 11: Cross-flow API test pass for OTP edge cases, delivery modes, timing boundaries, and database error paths.
 - Step 12: Web app scaffold with Vite React, Tailwind CSS, and base layout.
-- Step 13: Frontend OTP request, resend, and verification interface wired to structured API responses.
-- Step 14: Deployment configuration and final documentation pass.
+- Step 13: Frontend OTP request, resend, verification, and demo inbox interface wired to structured API responses.
+- Step 14: Deployment configuration, Resend environment setup, and final documentation pass.
 
 ## Blockers
 
@@ -36,4 +36,5 @@ Ready for Step 7: Prisma schema foundation, database connection setup, migration
 
 - The current project plan in `docs/project-plan.md` is represented here as operator-sized steps.
 - OTP business invariants should be implemented and tested with the flow that introduces them.
+- OTP delivery mode should be considered in request, resend, frontend, and deployment tasks.
 - Keep each operator task narrow and reviewable.

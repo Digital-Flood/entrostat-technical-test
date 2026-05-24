@@ -15,6 +15,7 @@
 
 - Preserve backend layering: routes, validators, controllers, services, repositories, and Prisma.
 - Keep OTP business rules out of route handlers.
+- Keep OTP delivery behind the delivery abstraction; controllers and routes should not call demo inbox or Resend implementations directly.
 - Keep frontend code focused on UI state and API interaction.
 - Use `packages/shared` only for genuinely shared types or utilities.
 - Avoid adding cross-package coupling without a clear need.
@@ -23,6 +24,7 @@
 
 - Avoid introducing dependencies unless they are required for the assigned task.
 - Prefer dependencies already selected in the project stack.
+- Add the Resend dependency only in the scoped production delivery task.
 - Explain any new dependency in the task summary.
 - Do not add tooling or frameworks outside the planned stack without explicit approval.
 
