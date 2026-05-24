@@ -2,33 +2,31 @@
 
 ## Current Phase
 
-Step 1: Project scaffold and documentation.
+Ready for Step 2: Agent orchestration documentation review and final alignment.
 
 ## Completed
 
-Nothing completed yet.
+- Step 1: Project scaffold and documentation.
 
 ## In Progress
 
-- Step 1: Project scaffold and documentation.
+- None.
 
 ## Next
 
-- Step 2: Agent orchestration documentation.
-- Step 3: Root TypeScript, workspace, linting, and formatting foundation.
-- Step 4: API package scaffold with Express and TypeScript.
-- Step 5: API health route, middleware, and error-handling foundation.
-- Step 6: Shared package scaffold for common types and validation helpers.
-- Step 7: Prisma schema foundation and database connection setup.
-- Step 8: Database migration setup and local PostgreSQL workflow.
-- Step 9: OTP request service and API route.
-- Step 10: OTP resend service and API route.
-- Step 11: OTP verification service and API route.
-- Step 12: OTP expiry, latest-code-only, single-use, and rate-limit enforcement.
-- Step 13: API test suite for OTP business rules and route behaviour.
-- Step 14: Web app scaffold with Vite React, Tailwind CSS, and base layout.
-- Step 15: Frontend OTP request, resend, and verification interface.
-- Step 16: Deployment configuration and final documentation pass.
+- Step 2: Agent orchestration documentation review and final alignment.
+- Step 3: Root TypeScript, workspace, linting, formatting, and test runner foundation.
+- Step 4: API package scaffold with Express, TypeScript, health route, middleware, and error handling.
+- Step 5: Shared API contract package for response envelopes, error codes, and validation helpers.
+- Step 6: API route test harness with Supertest and baseline health/error tests.
+- Step 7: Prisma schema foundation, database connection setup, migration workflow, and repository layer.
+- Step 8: OTP request service and API route with expiry metadata, request limits, latest-code supersession, and focused tests.
+- Step 9: OTP resend service and API route with resend window, maximum resend count, latest-code supersession, and focused tests.
+- Step 10: OTP verification service and API route with latest-code-only validation, expiry rejection, single-use enforcement, and focused tests.
+- Step 11: Cross-flow API test pass for OTP edge cases, timing boundaries, and database error paths.
+- Step 12: Web app scaffold with Vite React, Tailwind CSS, and base layout.
+- Step 13: Frontend OTP request, resend, and verification interface wired to structured API responses.
+- Step 14: Deployment configuration and final documentation pass.
 
 ## Blockers
 
@@ -37,5 +35,5 @@ Nothing completed yet.
 ## Notes
 
 - The current project plan in `docs/project-plan.md` is represented here as operator-sized steps.
-- No application functionality should be implemented during Step 1.
+- OTP business invariants should be implemented and tested with the flow that introduces them.
 - Keep each operator task narrow and reviewable.

@@ -53,7 +53,7 @@ Use a scope when it improves clarity. Prefer incremental commits that are easy t
 
 ## Workflow Expectations
 
-- Follow the planned project phases in `docs/project-plan.md` and `.agent/task-board.md`.
+- Follow the planned project phases in `docs/project-plan.md` and `agent/task-board.md`.
 - Read the task board before starting work.
 - Keep implementation tasks narrow and commit-friendly.
 - Do not duplicate work already assigned or in progress.

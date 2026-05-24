@@ -6,6 +6,7 @@
 - Use Supertest for HTTP-level API tests.
 - Use Vitest or Jest for unit and integration tests.
 - Keep database-dependent tests isolated and repeatable.
+- Add focused tests alongside each OTP route or service rule as it is implemented.
 - Add frontend tests only where they provide useful coverage of form state, validation display, and API interaction behaviour.
 
 ## Key OTP Business Rules To Test
@@ -38,6 +39,7 @@
 - Local PostgreSQL starts with Docker Compose.
 - Environment variables are documented and loaded correctly.
 - API health route responds successfully.
+- API success and error responses use the documented response envelope.
 - OTP request flow works from the frontend.
 - OTP resend flow shows clear user feedback.
 - OTP verification flow shows success and failure states.

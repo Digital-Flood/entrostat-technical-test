@@ -11,13 +11,14 @@
 
 1. Project scaffold and documentation.
 2. Backend foundation: Express app, TypeScript configuration, validation, error handling, and health route.
-3. Database foundation: Prisma schema, migrations, and database access layer.
-4. OTP request and resend flow.
-5. OTP verification flow.
-6. Rate limiting, expiry, latest-code-only validation, and single-use enforcement.
-7. Frontend testing interface.
-8. Automated tests for API behaviour and OTP business rules.
-9. Deployment configuration and final documentation updates.
+3. API contract foundation: shared response shapes, validation error format, and route-level test setup.
+4. Database foundation: Prisma schema, migrations, repository layer, and transactional update patterns for OTP state.
+5. OTP request flow with expiry metadata, request limits, latest-code supersession, and focused tests.
+6. OTP resend flow with resend windows, maximum resend counts, latest-code supersession, and focused tests.
+7. OTP verification flow with latest-code-only validation, expiry rejection, single-use enforcement, and focused tests.
+8. Full API test pass for cross-flow behaviour and edge cases.
+9. Frontend testing interface.
+10. Deployment configuration and final documentation updates.
 
 ## Planned Features
 
@@ -26,7 +27,7 @@
 - Verify an OTP against the latest active code only.
 - Reject expired, superseded, already-used, or incorrect OTPs.
 - Enforce configurable request limits.
-- Return clear API responses for success and validation failures.
+- Return structured API responses for success, validation failures, rate limits, expired codes, superseded codes, reused codes, and incorrect codes.
 - Provide a frontend interface for exercising the full OTP flow.
 
 ## Frontend Scope
@@ -43,7 +44,7 @@
 - Build a TypeScript Express API.
 - Define request and response validation with Zod.
 - Implement OTP generation, persistence, resend handling, verification, and invalidation rules.
-- Add API tests for core routes and business rules.
+- Add API tests alongside each route and business rule as it is implemented.
 - Keep route handlers thin by separating routing, validation, service logic, and database access.
 
 ## Database Scope
@@ -51,6 +52,8 @@
 - Use PostgreSQL for local and deployed persistence.
 - Use Prisma for schema management and database access.
 - Store OTP request records, status, expiry, verification state, resend metadata, and rate-limit data as required.
+- Use database constraints or transactional updates where needed so concurrent verification attempts cannot both succeed.
+- Preserve enough historical OTP state to reject superseded codes deterministically.
 - Add migrations once the schema is defined.
 
 ## Deployment Scope

@@ -14,7 +14,7 @@ Current stack:
 - Tailwind CSS
 - Framer Motion
 
-Follow `AGENTS.md`, `.agent/operator-rules.md`, `docs/project-plan.md`, and `docs/architecture.md`.
+Follow `AGENTS.md`, `agent/operator-rules.md`, `docs/project-plan.md`, and `docs/architecture.md`.
 
 ## Current Task
 
