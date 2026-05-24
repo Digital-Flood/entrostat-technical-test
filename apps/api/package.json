@@ -4,12 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prebuild": "npm run build -w @entrostat-otp/shared",
     "build": "tsc -p tsconfig.json",
+    "predev": "npm run build -w @entrostat-otp/shared",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@entrostat-otp/shared": "file:../../packages/shared",
     "express": "^5.1.0"
   },
   "devDependencies": {

@@ -99,6 +99,6 @@ Planned deployment targets:
 
 ## Project Status
 
-Steps 1, 2, 3, and 4 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, and the initial Express API scaffold with a health route.
+Steps 1, 2, 3, 4, and 5 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, and the shared API response contract package.
 
-The next step is the shared API contract package for response envelopes, error codes, and validation helpers. Implementation of OTP logic, frontend screens, Prisma schema, and deployment configuration is intentionally deferred to later steps.
+The next step is the API route test harness with Supertest and baseline health/error tests. Implementation of OTP logic, frontend screens, Prisma schema, and deployment configuration is intentionally deferred to later steps.
