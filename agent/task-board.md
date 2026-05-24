@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Ready for Step 6: API route test harness with Supertest and baseline health/error tests.
+Ready for Step 7: Prisma schema foundation, database connection setup, migration workflow, and repository layer.
 
 ## Completed
 
@@ -11,6 +11,7 @@ Ready for Step 6: API route test harness with Supertest and baseline health/erro
 - Step 3: Root TypeScript, workspace, linting, formatting, and test runner foundation.
 - Step 4: API package scaffold with Express, TypeScript, health route, middleware, and error handling.
 - Step 5: Shared API contract package for response envelopes, error codes, and validation helpers.
+- Step 6: API route test harness with Supertest and baseline health/error tests.
 
 ## In Progress
 
@@ -18,7 +19,6 @@ Ready for Step 6: API route test harness with Supertest and baseline health/erro
 
 ## Next
 
-- Step 6: API route test harness with Supertest and baseline health/error tests.
 - Step 7: Prisma schema foundation, database connection setup, migration workflow, and repository layer.
 - Step 8: OTP request service and API route with expiry metadata, request limits, latest-code supersession, and focused tests.
 - Step 9: OTP resend service and API route with resend window, maximum resend count, latest-code supersession, and focused tests.

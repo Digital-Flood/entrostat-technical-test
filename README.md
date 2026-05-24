@@ -73,6 +73,7 @@ npm run typecheck
 npm run lint
 npm run format:check
 npm test
+npm test -w @entrostat-otp/api
 ```
 
 Expected local workflow:
@@ -99,6 +100,6 @@ Planned deployment targets:
 
 ## Project Status
 
-Steps 1, 2, 3, 4, and 5 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, and the shared API response contract package.
+Steps 1, 2, 3, 4, 5, and 6 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, and the API route test harness with baseline health/error coverage.
 
-The next step is the API route test harness with Supertest and baseline health/error tests. Implementation of OTP logic, frontend screens, Prisma schema, and deployment configuration is intentionally deferred to later steps.
+The next step is the Prisma schema foundation, database connection setup, migration workflow, and repository layer. Implementation of OTP logic, frontend screens, and deployment configuration is intentionally deferred to later steps.
