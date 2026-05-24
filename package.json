@@ -1,0 +1,13 @@
+{
+  "name": "entrostat-otp-assessment",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "echo \"Development scripts will be added in a later step.\"",
+    "test": "echo \"Test scripts will be added in a later step.\""
+  }
+}
