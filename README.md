@@ -69,6 +69,9 @@ Root tooling commands are available from the repository root:
 
 ```sh
 npm run dev
+npm run db:generate
+npm run db:migrate
+npm run db:migrate:deploy
 npm run typecheck
 npm run lint
 npm run format:check
@@ -81,7 +84,7 @@ Expected local workflow:
 1. Install dependencies.
 2. Copy `.env.example` to `.env`.
 3. Start PostgreSQL with Docker Compose.
-4. Run database migrations.
+4. Run database migrations with `npm run db:migrate`.
 5. Start the API and web development servers.
 
 ## Environment Variables
@@ -100,6 +103,6 @@ Planned deployment targets:
 
 ## Project Status
 
-Steps 1, 2, 3, 4, 5, and 6 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, and the API route test harness with baseline health/error coverage.
+Steps 1, 2, 3, 4, 5, 6, and 7 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, the API route test harness with baseline health/error coverage, and the Prisma PostgreSQL persistence foundation for OTP records.
 
-The next step is the Prisma schema foundation, database connection setup, migration workflow, and repository layer. Implementation of OTP logic, frontend screens, and deployment configuration is intentionally deferred to later steps.
+The next step is the OTP request service and API route. OTP resend, verification, delivery behaviour, frontend screens, and deployment configuration are intentionally deferred to later steps.

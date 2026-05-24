@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OtpStatus {
+  ACTIVE
+  VERIFIED
+  SUPERSEDED
+  EXPIRED
+}
+
+enum OtpIssueReason {
+  REQUEST
+  RESEND
+}
+
+model OtpRecord {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email          String         @db.VarChar(320)
+  code           String         @db.VarChar(16)
+  status         OtpStatus      @default(ACTIVE)
+  issueReason    OtpIssueReason @default(REQUEST) @map("issue_reason")
+  requestGroupId String         @default(dbgenerated("gen_random_uuid()")) @map("request_group_id") @db.Uuid
+  resendCount    Int            @default(0) @map("resend_count")
+  expiresAt      DateTime       @map("expires_at")
+  verifiedAt     DateTime?      @map("verified_at")
+  supersededAt   DateTime?      @map("superseded_at")
+  supersededById String?        @map("superseded_by_id") @db.Uuid
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  supersededBy      OtpRecord?  @relation("OtpSupersession", fields: [supersededById], references: [id])
+  supersededRecords OtpRecord[] @relation("OtpSupersession")
+
+  @@index([email, createdAt(sort: Desc)], map: "otp_records_email_created_at_idx")
+  @@index([email, status, createdAt(sort: Desc)], map: "otp_records_email_status_created_at_idx")
+  @@index([requestGroupId, createdAt(sort: Desc)], map: "otp_records_request_group_created_at_idx")
+  @@index([supersededById], map: "otp_records_superseded_by_id_idx")
+  @@map("otp_records")
+}
