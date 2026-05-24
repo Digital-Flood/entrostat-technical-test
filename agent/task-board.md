@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Ready for Step 13: Frontend OTP request, resend, verification, and demo inbox interface wired to structured API responses.
+Ready for Step 14: Deployment configuration, Resend environment setup, and final documentation pass.
 
 ## Completed
 
@@ -18,6 +18,7 @@ Ready for Step 13: Frontend OTP request, resend, verification, and demo inbox in
 - Step 10: OTP verification service and API route with latest-code-only validation, expiry rejection, single-use enforcement, conditional persistence, and focused tests.
 - Step 11: Cross-flow API test pass covering request/resend/verify interactions, OTP edge cases, delivery capture, timing boundaries, and route-level internal error envelopes.
 - Step 12: Web app scaffold with Vite React, Tailwind CSS, Framer Motion availability, workspace scripts, and a base verification console layout.
+- Step 13: Frontend OTP request, resend, verification, and demo inbox interface wired to structured API responses.
 
 ## In Progress
 
@@ -25,7 +26,6 @@ Ready for Step 13: Frontend OTP request, resend, verification, and demo inbox in
 
 ## Next
 
-- Step 13: Frontend OTP request, resend, verification, and demo inbox interface wired to structured API responses.
 - Step 14: Deployment configuration, Resend environment setup, and final documentation pass.
 
 ## Blockers

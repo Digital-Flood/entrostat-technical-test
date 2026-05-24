@@ -13,6 +13,7 @@ The project is structured as a small monorepo with a TypeScript Express API, a V
 - Enforce single-use verification.
 - Apply request and resend rate limits.
 - Provide a frontend testing interface for the OTP flow.
+- Provide a demo-mode OTP inbox for local testing.
 - Cover core OTP business rules with automated tests.
 
 ## Tech Stack
@@ -94,6 +95,8 @@ Expected local workflow:
 
 Environment variables are listed in `.env.example`. Concrete values should be supplied locally and in deployment environments.
 
+The web app calls the API configured by `VITE_API_BASE_URL`. Local API CORS defaults allow localhost Vite dev server origins.
+
 ## Deployment
 
 Deployment configuration will be added after the application implementation is in place.
@@ -106,6 +109,6 @@ Planned deployment targets:
 
 ## Project Status
 
-Steps 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, the API route test harness with baseline health/error coverage, the Prisma PostgreSQL persistence foundation for OTP records, the `POST /otp/request` flow with request limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/resend` flow with resend windows, resend limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/verify` flow with latest-code-only validation, expiry rejection, single-use enforcement, conditional persistence, focused tests, the cross-flow API test pass for request/resend/verify edge cases, and the initial Vite React web scaffold with Tailwind CSS and a base verification console shell.
+Steps 1 through 13 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, the API route test harness with baseline health/error coverage, the Prisma PostgreSQL persistence foundation for OTP records, the `POST /otp/request` flow with request limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/resend` flow with resend windows, resend limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/verify` flow with latest-code-only validation, expiry rejection, single-use enforcement, conditional persistence, focused tests, the cross-flow API test pass for request/resend/verify edge cases, the initial Vite React web scaffold, and the wired frontend OTP verification console with a demo inbox backed by `GET /dev/otp-inbox`.
 
-The next step is the frontend OTP request, resend, verification, and demo inbox interface. Production email delivery and deployment configuration are intentionally deferred to later steps.
+The next step is deployment configuration, Resend environment setup, and the final documentation pass. Production email delivery remains deferred to that step.

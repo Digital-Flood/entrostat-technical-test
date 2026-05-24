@@ -46,4 +46,15 @@ describe('API routes', () => {
       },
     });
   });
+
+  it('allows local web preflight requests', async () => {
+    const response = await request(app)
+      .options('/otp/request')
+      .set('Origin', 'http://localhost:5175')
+      .set('Access-Control-Request-Method', 'POST');
+
+    expect(response.status).toBe(204);
+    expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5175');
+    expect(response.headers['access-control-allow-methods']).toBe('GET,POST,OPTIONS');
+  });
 });

@@ -28,6 +28,7 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         document: 'readonly',
+        fetch: 'readonly',
       },
     },
   },
