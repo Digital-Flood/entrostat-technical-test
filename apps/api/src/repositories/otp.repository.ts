@@ -108,6 +108,18 @@ export class OtpRepository {
     });
   }
 
+  countRequestsCreatedSince(email: string, since: Date): Promise<number> {
+    return this.db.otpRecord.count({
+      where: {
+        email,
+        issueReason: 'REQUEST',
+        createdAt: {
+          gte: since,
+        },
+      },
+    });
+  }
+
   countResendsForRequestGroup(requestGroupId: string): Promise<number> {
     return this.db.otpRecord.count({
       where: {

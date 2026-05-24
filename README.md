@@ -6,7 +6,7 @@ The project is structured as a small monorepo with a TypeScript Express API, a V
 
 ## Key Features
 
-- Request an OTP for a user identifier.
+- Request an OTP for an email address.
 - Resend OTPs within defined resend limits.
 - Expire OTPs after a configurable duration.
 - Validate only the latest issued OTP.
@@ -103,6 +103,6 @@ Planned deployment targets:
 
 ## Project Status
 
-Steps 1, 2, 3, 4, 5, 6, and 7 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, the API route test harness with baseline health/error coverage, and the Prisma PostgreSQL persistence foundation for OTP records.
+Steps 1, 2, 3, 4, 5, 6, 7, and 8 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, the API route test harness with baseline health/error coverage, the Prisma PostgreSQL persistence foundation for OTP records, and the `POST /otp/request` flow with request limits, supersession, expiry metadata, and demo delivery capture.
 
-The next step is the OTP request service and API route. OTP resend, verification, delivery behaviour, frontend screens, and deployment configuration are intentionally deferred to later steps.
+The next step is the OTP resend service and API route. OTP verification, frontend screens, the public dev inbox endpoint, production email delivery, and deployment configuration are intentionally deferred to later steps.
