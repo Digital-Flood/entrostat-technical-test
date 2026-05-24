@@ -66,49 +66,98 @@ Install dependencies from the repository root:
 npm install
 ```
 
-Root tooling commands are available from the repository root:
+Create a local environment file:
 
 ```sh
-npm run dev
-npm run dev:api
-npm run dev:web
-npm run build:web
+cp .env.example .env
+```
+
+Start PostgreSQL:
+
+```sh
+docker compose up -d postgres
+```
+
+Apply the Prisma migration and generate the client:
+
+```sh
 npm run db:generate
 npm run db:migrate
-npm run db:migrate:deploy
+```
+
+Run the API and web app in separate terminals:
+
+```sh
+npm run dev:api
+npm run dev:web
+```
+
+With the default `.env`, the API runs in demo delivery mode. Request or resend an OTP from the web app, then use the demo inbox panel to read the captured code. Normal request, resend, and verify API responses do not include OTP codes.
+
+Run checks from the repository root:
+
+```sh
 npm run typecheck
 npm run lint
 npm run format:check
 npm test
 npm test -w @entrostat-otp/api
+npm run build -w @entrostat-otp/web
+npm run build -w @entrostat-otp/api
 ```
-
-Expected local workflow:
-
-1. Install dependencies.
-2. Copy `.env.example` to `.env`.
-3. Start PostgreSQL with Docker Compose.
-4. Run database migrations with `npm run db:migrate`.
-5. Start the API and web development servers with `npm run dev:api` and `npm run dev:web`.
 
 ## Environment Variables
 
 Environment variables are listed in `.env.example`. Concrete values should be supplied locally and in deployment environments.
 
+| Variable                    | Required       | Use                                                                                                                         |
+| --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`              | API            | PostgreSQL connection string for Prisma. Use the Neon pooled connection string in deployment.                               |
+| `API_PORT`                  | Local API      | Local API port. Render supplies `PORT`, which the API also honours.                                                         |
+| `WEB_PORT`                  | Local web      | Vite dev server port.                                                                                                       |
+| `VITE_API_BASE_URL`         | Web            | Browser-facing API base URL. Set this to the Render service URL in Vercel.                                                  |
+| `WEB_ORIGIN`                | API deployment | Allowed deployed frontend origin for CORS, for example the Vercel URL. Localhost origins are allowed for local development. |
+| `OTP_DELIVERY_MODE`         | API            | `demo` for local inbox capture, `production` for Resend email sending.                                                      |
+| `OTP_EXPIRY_SECONDS`        | API            | OTP lifetime in seconds.                                                                                                    |
+| `OTP_RESEND_WINDOW_MINUTES` | API            | Resend window duration.                                                                                                     |
+| `OTP_MAX_REQUESTS_PER_HOUR` | API            | Maximum request attempts per email per hour.                                                                                |
+| `OTP_MAX_RESENDS`           | API            | Maximum resend attempts per request group.                                                                                  |
+| `OTP_LENGTH`                | API            | Numeric OTP length.                                                                                                         |
+| `RESEND_API_KEY`            | Production API | Resend API key when `OTP_DELIVERY_MODE=production`.                                                                         |
+| `OTP_EMAIL_FROM`            | Production API | Verified Resend sender address.                                                                                             |
+| `NODE_ENV`                  | API            | Runtime environment.                                                                                                        |
+
 The web app calls the API configured by `VITE_API_BASE_URL`. Local API CORS defaults allow localhost Vite dev server origins.
 
 ## Deployment
 
-Deployment configuration will be added after the application implementation is in place.
+Deployment configuration is included for the planned targets:
 
-Planned deployment targets:
+- `apps/web/vercel.json` for the Vercel frontend.
+- `render.yaml` for the Render backend.
+- Neon PostgreSQL through `DATABASE_URL`.
 
-- Frontend: Vercel
-- Backend: Render
-- Database: Neon PostgreSQL
+Vercel setup:
+
+1. Create a Vercel project with root directory `apps/web`.
+2. Set `VITE_API_BASE_URL` to the Render API URL.
+3. Deploy using the committed `apps/web/vercel.json`.
+
+Render setup:
+
+1. Create a Render Blueprint from `render.yaml`, or mirror its build and start commands in a web service.
+2. Keep the Render build command as `npm ci --include=dev && npm run build -w @entrostat-otp/api`; the API build needs workspace build tooling.
+3. Set `OTP_DELIVERY_MODE=production`, `RESEND_API_KEY`, and `OTP_EMAIL_FROM`.
+4. Set `DATABASE_URL` to the Neon PostgreSQL connection string.
+5. Set `WEB_ORIGIN` to the deployed Vercel origin.
+6. Render supplies `PORT`; `API_PORT` is only needed locally.
+
+Neon setup:
+
+1. Create a PostgreSQL database.
+2. Use the Neon connection string as `DATABASE_URL` on Render.
+3. The Render start command runs `npm run db:migrate:deploy` before starting the API. The Prisma CLI is a runtime dependency so migration deploy remains available when `NODE_ENV=production`.
 
 ## Project Status
 
-Steps 1 through 13 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, the API route test harness with baseline health/error coverage, the Prisma PostgreSQL persistence foundation for OTP records, the `POST /otp/request` flow with request limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/resend` flow with resend windows, resend limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/verify` flow with latest-code-only validation, expiry rejection, single-use enforcement, conditional persistence, focused tests, the cross-flow API test pass for request/resend/verify edge cases, the initial Vite React web scaffold, and the wired frontend OTP verification console with a demo inbox backed by `GET /dev/otp-inbox`.
-
-The next step is deployment configuration, Resend environment setup, and the final documentation pass. Production email delivery remains deferred to that step.
+Steps 1 through 14 are complete. The app includes the OTP API, Prisma persistence, demo and production delivery adapters, the React verification console with demo inbox support, deployment configuration, and final setup documentation.

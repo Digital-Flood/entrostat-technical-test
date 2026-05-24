@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: entrostat-otp-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build -w @entrostat-otp/api
+    startCommand: npm run db:migrate:deploy && npm run start -w @entrostat-otp/api
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OTP_DELIVERY_MODE
+        value: production
+      - key: OTP_EXPIRY_SECONDS
+        value: '300'
+      - key: OTP_RESEND_WINDOW_MINUTES
+        value: '5'
+      - key: OTP_MAX_REQUESTS_PER_HOUR
+        value: '5'
+      - key: OTP_MAX_RESENDS
+        value: '3'
+      - key: OTP_LENGTH
+        value: '6'
+      - key: DATABASE_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: OTP_EMAIL_FROM
+        sync: false
+      - key: WEB_ORIGIN
+        sync: false

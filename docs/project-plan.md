@@ -9,16 +9,16 @@
 
 ## Planned Implementation Phases
 
-1. Project scaffold and documentation.
-2. Backend foundation: Express app, TypeScript configuration, validation, error handling, and health route.
-3. API contract foundation: shared response shapes, validation error format, and route-level test setup.
-4. Database foundation: Prisma schema, migrations, repository layer, and transactional update patterns for OTP state.
-5. OTP request flow with expiry metadata, request limits, latest-code supersession, delivery through the configured adapter, and focused tests.
-6. OTP resend flow with resend windows, maximum resend counts, latest-code supersession, delivery through the configured adapter, and focused tests.
-7. OTP verification flow with latest-code-only validation, expiry rejection, single-use enforcement, and focused tests.
-8. Full API test pass for cross-flow behaviour, delivery modes, and edge cases.
-9. Frontend testing interface with a demo-mode OTP inbox panel.
-10. Deployment configuration and final documentation updates.
+1. Project scaffold and documentation. Complete.
+2. Backend foundation: Express app, TypeScript configuration, validation, error handling, and health route. Complete.
+3. API contract foundation: shared response shapes, validation error format, and route-level test setup. Complete.
+4. Database foundation: Prisma schema, migrations, repository layer, and transactional update patterns for OTP state. Complete.
+5. OTP request flow with expiry metadata, request limits, latest-code supersession, delivery through the configured adapter, and focused tests. Complete.
+6. OTP resend flow with resend windows, maximum resend counts, latest-code supersession, delivery through the configured adapter, and focused tests. Complete.
+7. OTP verification flow with latest-code-only validation, expiry rejection, single-use enforcement, and focused tests. Complete.
+8. Full API test pass for cross-flow behaviour, delivery modes, and edge cases. Complete.
+9. Frontend testing interface with a demo-mode OTP inbox panel. Complete.
+10. Deployment configuration and final documentation updates. Complete.
 
 ## Planned Features
 
@@ -64,9 +64,10 @@
 
 ## Deployment Scope
 
-- Deploy the frontend to Vercel.
-- Deploy the backend to Render.
-- Use Neon PostgreSQL for the hosted database.
+- Deploy the frontend to Vercel using `apps/web/vercel.json`.
+- Deploy the backend to Render using `render.yaml`.
+- Use Neon PostgreSQL for the hosted database through `DATABASE_URL`.
 - Configure environment variables separately for local development and deployed environments.
 - Default local development to `OTP_DELIVERY_MODE=demo`.
-- Require `OTP_DELIVERY_MODE=production`, `RESEND_API_KEY`, and `OTP_EMAIL_FROM` for production email delivery.
+- Use `OTP_DELIVERY_MODE=production`, `RESEND_API_KEY`, and `OTP_EMAIL_FROM` for production Resend email delivery.
+- Set `WEB_ORIGIN` on the API deployment and `VITE_API_BASE_URL` on the web deployment so browser API calls are allowed and correctly routed.

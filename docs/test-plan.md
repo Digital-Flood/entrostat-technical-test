@@ -16,6 +16,7 @@
 - Invalid request payloads are rejected.
 - Requested and resent OTPs are delivered through the configured delivery adapter.
 - Demo-mode OTP deliveries are captured for the dev inbox without appearing in normal request or resend responses.
+- Production-mode OTP deliveries are sent through the Resend email client without appearing in normal request or resend responses.
 - OTPs expire after the configured expiry duration.
 - A submitted OTP must match the latest active OTP for the email address.
 - Older OTPs are rejected after a newer code is issued.
@@ -38,6 +39,7 @@
 - Database errors during request, resend, or verification.
 - Resend delivery failures during production-mode request or resend.
 - Missing Resend configuration when production delivery mode is enabled.
+- Resend API rejection when production delivery is enabled.
 - Dev inbox endpoint access while production delivery mode is enabled.
 - API calls made with unexpected content types or malformed JSON.
 
@@ -55,4 +57,5 @@
 - Expired, superseded, reused, and incorrect OTPs produce clear responses.
 - Automated tests pass locally.
 - README setup instructions match the implemented scripts.
-- Deployment environment variables, including Resend delivery configuration, are documented before final submission.
+- Deployment environment variables, including Resend delivery configuration, are documented.
+- Vercel, Render, and Neon setup notes match the committed configuration files.

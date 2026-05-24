@@ -43,6 +43,7 @@ React web app -> Express API -> Prisma -> PostgreSQL
 - Demo mode captures OTP deliveries in an ephemeral backend-held inbox for local testing.
 - Production mode sends OTP emails through Resend using `RESEND_API_KEY` and `OTP_EMAIL_FROM`.
 - Normal OTP request and resend responses should not include the generated code.
+- The production adapter returns only delivery metadata after Resend accepts the email request.
 
 ## Backend Layering
 
@@ -59,7 +60,7 @@ routes -> validators -> controllers -> services -> repositories -> Prisma
 - Delivery adapters isolate demo inbox capture and Resend email sending.
 - Prisma manages typed database access.
 
-## Expected API Endpoints
+## API Endpoints
 
 | Method | Endpoint         | Purpose                                            |
 | ------ | ---------------- | -------------------------------------------------- |
@@ -69,7 +70,7 @@ routes -> validators -> controllers -> services -> repositories -> Prisma
 | `POST` | `/otp/verify`    | Verify a submitted OTP.                            |
 | `GET`  | `/dev/otp-inbox` | Return recent demo OTP deliveries in demo mode.    |
 
-Endpoint names may be adjusted during implementation if the route structure needs clearer grouping.
+The demo inbox endpoint returns `404` outside demo delivery mode.
 
 ## API Response Shape
 
@@ -91,7 +92,15 @@ type ApiError = {
 };
 ```
 
-Planned error codes should cover validation failures, rate limits, resend limits, expired OTPs, superseded OTPs, reused OTPs, incorrect OTPs, missing records, and unexpected server errors.
+Error codes cover validation failures, rate limits, resend limits, expired OTPs, superseded OTPs, reused OTPs, incorrect OTPs, missing records, missing routes, malformed JSON, and unexpected server errors.
+
+## Deployment
+
+- Frontend: Vercel, with `apps/web` as the project root and `VITE_API_BASE_URL` pointing to the API origin.
+- Backend: Render, using `render.yaml`. Render supplies `PORT`; local development can use `API_PORT`.
+- Database: Neon PostgreSQL, supplied to the API through `DATABASE_URL`.
+- CORS: local localhost origins are allowed for development. Deployed frontend origins should be set through `WEB_ORIGIN`.
+- Production email: set `OTP_DELIVERY_MODE=production`, `RESEND_API_KEY`, and `OTP_EMAIL_FROM`.
 
 ## Planned Data Flow
 

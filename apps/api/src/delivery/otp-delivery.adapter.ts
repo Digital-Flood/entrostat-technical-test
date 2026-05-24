@@ -17,6 +17,17 @@ export type OtpDeliveryResult = {
   status: OtpDeliveryStatus;
 };
 
+export type OtpEmailMessage = {
+  from: string;
+  subject: string;
+  text: string;
+  to: string;
+};
+
+export interface OtpEmailClient {
+  send(message: OtpEmailMessage): Promise<void>;
+}
+
 export interface OtpDeliveryAdapter {
   deliver(request: OtpDeliveryRequest): Promise<OtpDeliveryResult>;
 }
@@ -62,15 +73,87 @@ export class DemoOtpDeliveryAdapter implements OtpDeliveryAdapter {
 }
 
 export class ProductionOtpDeliveryAdapter implements OtpDeliveryAdapter {
-  constructor(private readonly config: Pick<OtpConfig, 'emailFrom' | 'resendApiKey'>) {
+  private readonly emailClient: OtpEmailClient;
+  private readonly emailFrom: string;
+
+  constructor(
+    private readonly config: Pick<OtpConfig, 'emailFrom' | 'resendApiKey'>,
+    emailClient?: OtpEmailClient,
+  ) {
     if (!this.config.resendApiKey || !this.config.emailFrom) {
       throw new Error('Production OTP delivery requires RESEND_API_KEY and OTP_EMAIL_FROM.');
     }
+
+    this.emailFrom = this.config.emailFrom;
+    this.emailClient = emailClient ?? new ResendHttpEmailClient(this.config.resendApiKey);
   }
 
-  async deliver(): Promise<OtpDeliveryResult> {
-    throw new Error('Production OTP delivery is not implemented yet.');
+  async deliver(request: OtpDeliveryRequest): Promise<OtpDeliveryResult> {
+    await this.emailClient.send({
+      from: this.emailFrom,
+      subject: 'Your Entrostat OTP code',
+      text: createOtpEmailText(request),
+      to: request.email,
+    });
+
+    return {
+      mode: 'production',
+      status: 'queued',
+    };
   }
+}
+
+type ResendFetchResponse = {
+  ok: boolean;
+  status: number;
+  text(): Promise<string>;
+};
+
+type ResendFetch = (
+  url: string,
+  init: {
+    body: string;
+    headers: Record<string, string>;
+    method: 'POST';
+  },
+) => Promise<ResendFetchResponse>;
+
+export class ResendHttpEmailClient implements OtpEmailClient {
+  constructor(
+    private readonly apiKey: string,
+    private readonly fetcher: ResendFetch = globalThis.fetch.bind(globalThis) as ResendFetch,
+  ) {}
+
+  async send(message: OtpEmailMessage): Promise<void> {
+    const response = await this.fetcher('https://api.resend.com/emails', {
+      body: JSON.stringify({
+        from: message.from,
+        subject: message.subject,
+        text: message.text,
+        to: message.to,
+      }),
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      throw new Error(
+        `Resend email delivery failed with status ${response.status}${responseText ? `: ${responseText}` : '.'}`,
+      );
+    }
+  }
+}
+
+function createOtpEmailText(request: OtpDeliveryRequest): string {
+  return [
+    `Your Entrostat OTP code is ${request.code}.`,
+    `It expires at ${request.expiresAt.toISOString()}.`,
+    'If you did not request this code, ignore this email.',
+  ].join('\n\n');
 }
 
 export const demoOtpDeliveryStore = new DemoOtpDeliveryStore();

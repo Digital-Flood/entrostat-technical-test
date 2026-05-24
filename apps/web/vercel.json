@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd ../.. && npm run build -w @entrostat-otp/web",
+  "installCommand": "cd ../.. && npm install",
+  "outputDirectory": "dist"
+}
