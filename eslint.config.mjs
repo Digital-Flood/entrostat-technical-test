@@ -23,4 +23,21 @@ export default tseslint.config(
       },
     },
   },
+  {
+    files: ['apps/web/src/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        document: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['**/*.config.{cjs,js,ts}', '**/vite.config.ts'],
+    languageOptions: {
+      globals: {
+        module: 'readonly',
+        process: 'readonly',
+      },
+    },
+  },
 );

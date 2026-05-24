@@ -69,6 +69,9 @@ Root tooling commands are available from the repository root:
 
 ```sh
 npm run dev
+npm run dev:api
+npm run dev:web
+npm run build:web
 npm run db:generate
 npm run db:migrate
 npm run db:migrate:deploy
@@ -85,7 +88,7 @@ Expected local workflow:
 2. Copy `.env.example` to `.env`.
 3. Start PostgreSQL with Docker Compose.
 4. Run database migrations with `npm run db:migrate`.
-5. Start the API and web development servers.
+5. Start the API and web development servers with `npm run dev:api` and `npm run dev:web`.
 
 ## Environment Variables
 
@@ -103,6 +106,6 @@ Planned deployment targets:
 
 ## Project Status
 
-Steps 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 11 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, the API route test harness with baseline health/error coverage, the Prisma PostgreSQL persistence foundation for OTP records, the `POST /otp/request` flow with request limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/resend` flow with resend windows, resend limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/verify` flow with latest-code-only validation, expiry rejection, single-use enforcement, conditional persistence, and focused tests, and the cross-flow API test pass for request/resend/verify edge cases.
+Steps 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 complete: project structure, documentation skeleton, agent orchestration documentation alignment, root tooling foundation, the initial Express API scaffold with a health route, the shared API response contract package, the API route test harness with baseline health/error coverage, the Prisma PostgreSQL persistence foundation for OTP records, the `POST /otp/request` flow with request limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/resend` flow with resend windows, resend limits, supersession, expiry metadata, and demo delivery capture, the `POST /otp/verify` flow with latest-code-only validation, expiry rejection, single-use enforcement, conditional persistence, focused tests, the cross-flow API test pass for request/resend/verify edge cases, and the initial Vite React web scaffold with Tailwind CSS and a base verification console shell.
 
-The next step is the web app scaffold with Vite React, Tailwind CSS, and base layout. Frontend OTP screens, the public dev inbox endpoint, production email delivery, and deployment configuration are intentionally deferred to later steps.
+The next step is the frontend OTP request, resend, verification, and demo inbox interface. Production email delivery and deployment configuration are intentionally deferred to later steps.

@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Ready for Step 12: Web app scaffold with Vite React, Tailwind CSS, and base layout.
+Ready for Step 13: Frontend OTP request, resend, verification, and demo inbox interface wired to structured API responses.
 
 ## Completed
 
@@ -17,6 +17,7 @@ Ready for Step 12: Web app scaffold with Vite React, Tailwind CSS, and base layo
 - Step 9: OTP resend service and API route with resend window, maximum resend count, latest-code supersession, configured delivery, demo inbox capture, and focused tests.
 - Step 10: OTP verification service and API route with latest-code-only validation, expiry rejection, single-use enforcement, conditional persistence, and focused tests.
 - Step 11: Cross-flow API test pass covering request/resend/verify interactions, OTP edge cases, delivery capture, timing boundaries, and route-level internal error envelopes.
+- Step 12: Web app scaffold with Vite React, Tailwind CSS, Framer Motion availability, workspace scripts, and a base verification console layout.
 
 ## In Progress
 
@@ -24,7 +25,6 @@ Ready for Step 12: Web app scaffold with Vite React, Tailwind CSS, and base layo
 
 ## Next
 
-- Step 12: Web app scaffold with Vite React, Tailwind CSS, and base layout.
 - Step 13: Frontend OTP request, resend, verification, and demo inbox interface wired to structured API responses.
 - Step 14: Deployment configuration, Resend environment setup, and final documentation pass.
 

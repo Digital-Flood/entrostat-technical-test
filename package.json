@@ -9,6 +9,9 @@
   "scripts": {
     "pretypecheck": "npm run db:generate",
     "dev": "npm run dev -w @entrostat-otp/api",
+    "dev:api": "npm run dev -w @entrostat-otp/api",
+    "dev:web": "npm run dev -w @entrostat-otp/web",
+    "build:web": "npm run build -w @entrostat-otp/web",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
