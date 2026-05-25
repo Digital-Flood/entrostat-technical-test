@@ -1,8 +1,15 @@
 # Entrostat OTP Assessment
 
-A full-stack OTP verification system for the Entrostat technical assessment.
+Hello Entrostat!
 
 The project is structured as a small monorepo with a TypeScript Express API, a Vite React frontend, shared TypeScript utilities, Prisma-managed PostgreSQL data access, and Docker Compose support for local database development.
+
+## Important To Know For Testing
+
+The system has separate development and production environments:
+
+- Production: emails are sent only from the deployed production site at https://entrostat-technical-test-web.vercel.app/.
+- Development: OTP requests are captured in the local demo inbox instead of being sent by email. Open the demo drawer from the button in the top-right of the screen to view the captured OTP messages.
 
 ## Key Features
 
@@ -61,6 +68,8 @@ The project is structured as a small monorepo with a TypeScript Express API, a V
 
 ## Local Setup
 
+Docker Compose is used to run the local PostgreSQL database. Application code still runs on the host through the npm workspace scripts.
+
 Install dependencies from the repository root:
 
 ```sh
@@ -73,10 +82,16 @@ Create a local environment file:
 cp .env.example .env
 ```
 
-Start PostgreSQL:
+Start the PostgreSQL container with Docker:
 
 ```sh
 docker compose up -d postgres
+```
+
+This starts a local database using the credentials from `docker-compose.yml` and the default `.env.example` connection string:
+
+```text
+postgresql://postgres:postgres@127.0.0.1:5433/entrostat_otp?schema=public
 ```
 
 Apply the Prisma migration and generate the client:
@@ -93,9 +108,17 @@ npm run dev:api
 npm run dev:web
 ```
 
+By default, the API is available at `http://localhost:4000` and the web app is available at `http://localhost:5175`.
+
 With the default `.env`, the API runs in demo delivery mode. Request or resend an OTP from the web app, then use the demo inbox panel to read the captured code. Normal request, resend, and verify API responses do not include OTP codes.
 
 OTP rule settings are edited from the web app while it is running. Defaults are 3 requests per hour, 30 seconds expiry, a 5 minute resend window, and 3 resends. OTP length is fixed at 6 digits.
+
+Stop the local database when you are done:
+
+```sh
+docker compose down
+```
 
 Run checks from the repository root:
 
