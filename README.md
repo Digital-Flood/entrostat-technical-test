@@ -10,6 +10,7 @@ The system has separate development and production environments:
 
 - Production: emails are sent only from the deployed production site at https://entrostat-technical-test-web.vercel.app/.
 - Development: OTP requests are captured in the local demo inbox instead of being sent by email. Open the demo drawer from the button in the top-right of the screen to view the captured OTP messages.
+- The production API runs on Render's free tier, so it may sleep after inactivity. The frontend calls `/health` when it loads and may briefly show an API wake-up state while Render starts the service. If a request is made while the API is cold, the frontend waits for `/health` to respond and retries the action instead of treating Render gateway delays as application errors.
 
 ## Key Features
 
@@ -70,6 +71,11 @@ The system has separate development and production environments:
 
 Docker Compose is used to run the local PostgreSQL database. Application code still runs on the host through the npm workspace scripts.
 
+Prerequisites:
+
+- Node.js and npm.
+- Docker Desktop or a compatible Docker Compose runtime.
+
 Install dependencies from the repository root:
 
 ```sh
@@ -97,8 +103,8 @@ postgresql://postgres:postgres@127.0.0.1:5433/entrostat_otp?schema=public
 Apply the Prisma migration and generate the client:
 
 ```sh
-npm run db:generate
 npm run db:migrate
+npm run db:generate
 ```
 
 Run the API and web app in separate terminals:
