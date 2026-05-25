@@ -410,7 +410,7 @@ function App() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-background text-text-primary">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(37,99,235,0.2),transparent_32rem),radial-gradient(circle_at_80%_18%,rgba(56,189,248,0.11),transparent_28rem),linear-gradient(180deg,#0B1220_0%,#0F172A_52%,#080E1A_100%)]" />
+      <div className="app-ambient-background pointer-events-none fixed inset-0" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-soft-blue/50 to-transparent" />
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-4 py-5 sm:px-6 lg:px-8">
