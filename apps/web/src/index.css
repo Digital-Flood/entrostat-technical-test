@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,6 +15,7 @@
 }
 
 body {
+  background: #0b1220;
   margin: 0;
   min-width: 320px;
 }
@@ -24,4 +25,18 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+input {
+  caret-color: #60a5fa;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #e5e7eb;
+  box-shadow:
+    0 0 0 1000px rgba(15, 23, 42, 0.92) inset,
+    0 0 0 3px rgb(96 165 250 / 0.16);
+  transition: background-color 9999s ease-in-out 0s;
 }
