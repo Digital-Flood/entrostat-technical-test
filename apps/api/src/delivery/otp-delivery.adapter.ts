@@ -150,7 +150,7 @@ export class ResendHttpEmailClient implements OtpEmailClient {
 
 function createOtpEmailText(request: OtpDeliveryRequest): string {
   return [
-    `Your Entrostat OTP code is ${request.code}.`,
+    `Your OTP Guard code is ${request.code}.`,
     `It expires at ${formatOtpExpiry(request.expiresAt)}.`,
     'If you did not request this code, ignore this email.',
   ].join('\n\n');

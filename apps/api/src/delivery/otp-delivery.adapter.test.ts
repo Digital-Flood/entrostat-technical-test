@@ -52,7 +52,7 @@ describe('ProductionOtpDeliveryAdapter', () => {
         from: 'Entrostat OTP <otp@example.com>',
         subject: 'Your OTP Guard code',
         text: [
-          'Your Entrostat OTP code is 123456.',
+          'Your OTP Guard code is 123456.',
           'It expires at 24 May 2026, 12:05 UTC.',
           'If you did not request this code, ignore this email.',
         ].join('\n\n'),
@@ -79,8 +79,8 @@ describe('ResendHttpEmailClient', () => {
 
     await client.send({
       from: 'Entrostat OTP <otp@example.com>',
-      subject: 'Your Entrostat OTP code',
-      text: 'Your Entrostat OTP code is 123456.',
+      subject: 'Your OTP Guard code',
+      text: 'Your OTP Guard code is 123456.',
       to: 'person@example.com',
     });
 
@@ -89,8 +89,8 @@ describe('ResendHttpEmailClient', () => {
         init: {
           body: JSON.stringify({
             from: 'Entrostat OTP <otp@example.com>',
-            subject: 'Your Entrostat OTP code',
-            text: 'Your Entrostat OTP code is 123456.',
+            subject: 'Your OTP Guard code',
+            text: 'Your OTP Guard code is 123456.',
             to: 'person@example.com',
           }),
           headers: {
@@ -116,8 +116,8 @@ describe('ResendHttpEmailClient', () => {
     await expect(
       client.send({
         from: 'Entrostat OTP <otp@example.com>',
-        subject: 'Your Entrostat OTP code',
-        text: 'Your Entrostat OTP code is 123456.',
+        subject: 'Your OTP Guard code',
+        text: 'Your OTP Guard code is 123456.',
         to: 'person@example.com',
       }),
     ).rejects.toThrow('Resend email delivery failed with status 401: unauthorised');
