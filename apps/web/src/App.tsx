@@ -30,7 +30,7 @@ import type {
 } from './types/otp';
 
 type PendingAction = 'request' | 'resend' | 'verify';
-type ViewPhase = 'request' | 'verify';
+type ViewPhase = 'request' | 'success' | 'verify';
 
 type Notice = {
   message: string;
@@ -109,6 +109,7 @@ function App() {
   const resendCount = metadata && 'resendCount' in metadata ? metadata.resendCount : 0;
   const isBusy = pendingAction !== null;
   const isVerifyPhase = viewPhase === 'verify';
+  const isSuccessPhase = viewPhase === 'success';
   const normalisedCode = normaliseOtp(code);
 
   const flowState = useMemo(() => {
@@ -285,16 +286,23 @@ function App() {
       }
 
       setVerification(result.body.data);
-      setNotice({
-        message: 'The latest code has been verified and cannot be reused.',
-        title: 'Verification complete',
-        tone: 'success',
-      });
+      setCode('');
+      setViewPhase('success');
     } catch {
       setNotice(createNetworkNotice());
     } finally {
       setPendingAction(null);
     }
+  }
+
+  function returnToStart() {
+    setEmail('');
+    setVerifyEmail('');
+    setCode('');
+    setMetadata(null);
+    setVerification(null);
+    setNotice(null);
+    setViewPhase('request');
   }
 
   function handleOtpInput(index: number, value: string) {
@@ -428,7 +436,7 @@ function App() {
         <section className="relative py-3">
           <div className="mx-auto max-w-xl space-y-4">
             <AnimatePresence mode="wait" initial={false}>
-              {!isVerifyPhase ? (
+              {viewPhase === 'request' ? (
                 <motion.section
                   aria-labelledby="request-heading"
                   className="rounded-3xl bg-[linear-gradient(145deg,rgba(30,41,59,0.96),rgba(15,23,42,0.92)_58%,rgba(17,24,39,0.96))] p-5 shadow-card backdrop-blur-xl sm:p-6"
@@ -466,7 +474,7 @@ function App() {
                         className="font-semibold text-soft-blue underline decoration-soft-blue/40 underline-offset-4 transition hover:text-info-blue hover:decoration-info-blue disabled:cursor-not-allowed disabled:opacity-55"
                         disabled={isBusy}
                         onClick={() => {
-                          setVerifyEmail(email);
+                          setVerifyEmail('');
                           setViewPhase('verify');
                         }}
                         type="button"
@@ -495,6 +503,43 @@ function App() {
                       </button>
                     </div>
                   </form>
+                </motion.section>
+              ) : isSuccessPhase && verification ? (
+                <motion.section
+                  aria-labelledby="verified-heading"
+                  className="rounded-3xl bg-[linear-gradient(145deg,rgba(30,41,59,0.96),rgba(15,23,42,0.92)_58%,rgba(17,24,39,0.96))] p-5 shadow-card backdrop-blur-xl sm:p-6"
+                  key="success"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22, ease: 'easeOut' }}
+                >
+                  <PanelHeading eyebrow="Verified" icon="shield" title="Verification successful" />
+
+                  <div className="mt-6 rounded-2xl border border-success/30 bg-success/10 px-4 py-4 shadow-panel">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-success/30 bg-success/15 text-success">
+                        <Icon name="check" className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-emerald-100">
+                          The latest OTP for {verification.email} was verified and cannot be reused.
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-text-secondary">
+                          Verified at {formatDate(verification.verifiedAt)}.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-raised/50 px-4 text-sm font-semibold text-text-primary transition hover:border-border-active hover:bg-surface-raised active:scale-[0.98]"
+                    onClick={returnToStart}
+                    type="button"
+                  >
+                    <Icon name="arrowLeft" className="h-4 w-4" />
+                    Return to start
+                  </button>
                 </motion.section>
               ) : (
                 <motion.section
@@ -1041,7 +1086,6 @@ function InboxDelivery({ delivery }: { delivery: DevOtpInboxDelivery }) {
       <dl className="mt-4 grid gap-2 text-xs text-text-muted">
         <div className="flex justify-between gap-3">
           <dt className="inline-flex items-center gap-1.5">
-            <Icon name="clock" className="h-3.5 w-3.5" />
             Delivered
           </dt>
           <dd className="text-right text-text-secondary">{formatDate(delivery.deliveredAt)}</dd>
