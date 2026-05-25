@@ -3,7 +3,7 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
 import { createApp } from '../src/app.js';
-import type { OtpConfig } from '../src/config/otp.config.js';
+import type { OtpConfig, OtpRuleSettings } from '../src/config/otp.config.js';
 import {
   DemoOtpDeliveryAdapter,
   DemoOtpDeliveryStore,
@@ -14,6 +14,7 @@ import {
 import type {
   CreateOtpRecordInput,
   EmailAndCodeLookup,
+  EmailAndCodeSinceLookup,
   MarkVerifiedInput,
   SupersedeActiveInput,
 } from '../src/repositories/otp.repository.js';
@@ -28,14 +29,11 @@ type OtpCrossFlowRepository = OtpRequestRepository & OtpResendRepository & OtpVe
 
 const baseConfig = {
   codeLength: 6,
-  expirySeconds: 300,
-  maxRequestsPerHour: 5,
+  expirySeconds: 30,
+  maxRequestsPerHour: 3,
   maxResends: 3,
   resendWindowMinutes: 5,
-} satisfies Pick<
-  OtpConfig,
-  'codeLength' | 'expirySeconds' | 'maxRequestsPerHour' | 'maxResends' | 'resendWindowMinutes'
->;
+} satisfies Pick<OtpConfig, 'codeLength'> & OtpRuleSettings;
 
 class MutableClock {
   private current: Date;
@@ -106,6 +104,18 @@ class InMemoryOtpRepository implements OtpCrossFlowRepository {
     this.failIfRequested('findByEmailAndCode');
 
     return this.findLatestRecord((record) => record.email === email && record.code === code);
+  }
+
+  async findByEmailAndCodeCreatedSince({
+    code,
+    email,
+    since,
+  }: EmailAndCodeSinceLookup): Promise<OtpRecord | null> {
+    this.failIfRequested('findByEmailAndCodeCreatedSince');
+
+    return this.findLatestRecord(
+      (record) => record.email === email && record.code === code && record.createdAt >= since,
+    );
   }
 
   async findLatestByEmail(email: string): Promise<OtpRecord | null> {
@@ -296,8 +306,8 @@ describe('OTP API cross-flow behaviour', () => {
       ok: true,
       data: {
         email: 'person@example.com',
-        expiresAt: '2026-05-24T12:05:00.000Z',
-        expiresInSeconds: 300,
+        expiresAt: '2026-05-24T12:00:30.000Z',
+        expiresInSeconds: 30,
       },
     });
     expect(JSON.stringify(requestResponse.body)).not.toContain('111111');
@@ -347,9 +357,9 @@ describe('OTP API cross-flow behaviour', () => {
     expect(latestCodeResponse.status).toBe(200);
   });
 
-  it('resends by superseding the active code and verifying only the resent code', async () => {
+  it('resends the original code with updated expiry metadata', async () => {
     const { app, clock, delivery } = createCrossFlowHarness({
-      codeSequence: ['111111', '222222'],
+      codeSequence: ['111111'],
     });
 
     await request(app).post('/otp/request').send({ email: 'person@example.com' });
@@ -364,27 +374,28 @@ describe('OTP API cross-flow behaviour', () => {
       ok: true,
       data: {
         email: 'person@example.com',
+        expiresAt: '2026-05-24T12:01:30.000Z',
+        expiresInSeconds: 30,
         resendCount: 1,
       },
     });
 
-    const oldCodeResponse = await request(app).post('/otp/verify').send({
+    const resentOriginalCodeResponse = await request(app).post('/otp/verify').send({
       code: '111111',
       email: 'person@example.com',
     });
 
-    expect(oldCodeResponse.status).toBe(409);
-    expect(oldCodeResponse.body.error.code).toBe('OTP_SUPERSEDED');
-
-    const resentCodeResponse = await request(app).post('/otp/verify').send({
-      code: '222222',
-      email: 'person@example.com',
-    });
-
-    expect(resentCodeResponse.status).toBe(200);
-    expect(
-      (delivery as CapturingDeliveryAdapter).deliveries.map((item) => item.issueReason),
-    ).toEqual(['REQUEST', 'RESEND']);
+    expect(resentOriginalCodeResponse.status).toBe(200);
+    expect((delivery as CapturingDeliveryAdapter).deliveries).toMatchObject([
+      {
+        code: '111111',
+        issueReason: 'REQUEST',
+      },
+      {
+        code: '111111',
+        issueReason: 'RESEND',
+      },
+    ]);
   });
 
   it('rejects verified OTP codes when they are reused', async () => {
@@ -575,7 +586,7 @@ describe('OTP API cross-flow behaviour', () => {
   it('captures demo deliveries across request and resend without returning OTP codes', async () => {
     const store = new DemoOtpDeliveryStore();
     const { app, clock } = createCrossFlowHarness({
-      codeSequence: ['111111', '222222'],
+      codeSequence: ['111111'],
       delivery: new DemoOtpDeliveryAdapter(store),
     });
 
@@ -588,10 +599,10 @@ describe('OTP API cross-flow behaviour', () => {
     });
 
     expect(JSON.stringify(requestResponse.body)).not.toContain('111111');
-    expect(JSON.stringify(resendResponse.body)).not.toContain('222222');
+    expect(JSON.stringify(resendResponse.body)).not.toContain('111111');
     expect(store.list()).toEqual([
       expect.objectContaining({
-        code: '222222',
+        code: '111111',
         email: 'person@example.com',
         issueReason: 'RESEND',
       }),

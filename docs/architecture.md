@@ -15,6 +15,7 @@ React web app -> Express API -> Prisma -> PostgreSQL
 ### Frontend
 
 - Collects user input for OTP request, resend, and verification flows.
+- Allows the user to edit runtime OTP rule settings while using the site.
 - Calls the backend API.
 - Displays success, error, loading, and verification states.
 - Displays a demo-mode dev inbox panel for recent OTP deliveries when demo delivery is active.
@@ -26,6 +27,7 @@ React web app -> Express API -> Prisma -> PostgreSQL
 - Generates and stores OTPs.
 - Delivers OTPs through the configured delivery adapter.
 - Enforces expiry, resend, rate-limit, latest-code-only, and single-use rules.
+- Stores user-editable OTP rule settings in memory for this assessment.
 - Returns structured API responses to the frontend.
 - Owns response status mapping for validation errors, rate limits, incorrect codes, expired codes, superseded codes, reused codes, and successful verification.
 
@@ -62,13 +64,15 @@ routes -> validators -> controllers -> services -> repositories -> Prisma
 
 ## API Endpoints
 
-| Method | Endpoint         | Purpose                                            |
-| ------ | ---------------- | -------------------------------------------------- |
-| `GET`  | `/health`        | Confirm that the API is running.                   |
-| `POST` | `/otp/request`   | Request a new OTP for an email address.            |
-| `POST` | `/otp/resend`    | Resend or reissue an OTP within configured limits. |
-| `POST` | `/otp/verify`    | Verify a submitted OTP.                            |
-| `GET`  | `/dev/otp-inbox` | Return recent demo OTP deliveries in demo mode.    |
+| Method | Endpoint         | Purpose                                         |
+| ------ | ---------------- | ----------------------------------------------- |
+| `GET`  | `/health`        | Confirm that the API is running.                |
+| `POST` | `/otp/request`   | Request a new OTP for an email address.         |
+| `POST` | `/otp/resend`    | Resend the active OTP within configured limits. |
+| `POST` | `/otp/verify`    | Verify a submitted OTP.                         |
+| `GET`  | `/settings/otp`  | Return the current runtime OTP rule settings.   |
+| `PUT`  | `/settings/otp`  | Update runtime OTP rule settings in memory.     |
+| `GET`  | `/dev/otp-inbox` | Return recent demo OTP deliveries in demo mode. |
 
 The demo inbox endpoint returns `404` outside demo delivery mode.
 
@@ -101,6 +105,7 @@ Error codes cover validation failures, rate limits, resend limits, expired OTPs,
 - Database: Neon PostgreSQL, supplied to the API through `DATABASE_URL`.
 - CORS: local localhost origins are allowed for development. Deployed frontend origins should be set through `WEB_ORIGIN`.
 - Production email: set `OTP_DELIVERY_MODE=production`, `RESEND_API_KEY`, and `OTP_EMAIL_FROM`.
+- OTP rule settings default to 3 requests per hour, 30 seconds expiry, a 5 minute resend window, and 3 resends. The frontend settings modal updates these in memory at runtime.
 
 ## Planned Data Flow
 
@@ -111,7 +116,7 @@ Error codes cover validation failures, rate limits, resend limits, expired OTPs,
 5. The API delivers the OTP through the active delivery adapter.
 6. In demo mode, the frontend can read recent deliveries from the dev inbox endpoint.
 7. The frontend displays the request result and prompts for the OTP.
-8. If the user requests a resend, the API checks resend limits, creates the next latest OTP state, and delivers the new OTP.
+8. If the user requests a resend within the configured window, the API checks resend limits, creates the next latest OTP state with the original code and updated expiry, and delivers that code.
 9. When the user submits an OTP, the API validates the submitted code against the latest active record.
 10. The API rejects expired, superseded, already-used, or incorrect codes.
 11. On successful verification, the API marks the OTP as used with a conditional or transactional write and returns a success response.

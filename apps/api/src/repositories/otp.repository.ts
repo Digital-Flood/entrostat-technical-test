@@ -19,6 +19,10 @@ export type EmailAndCodeLookup = {
   code: string;
 };
 
+export type EmailAndCodeSinceLookup = EmailAndCodeLookup & {
+  since: Date;
+};
+
 export type SupersedeActiveInput = {
   email: string;
   supersededAt: Date;
@@ -85,6 +89,30 @@ export class OtpRepository {
       where: {
         email,
         code,
+      },
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+    });
+  }
+
+  findByEmailAndCodeCreatedSince({
+    code,
+    email,
+    since,
+  }: EmailAndCodeSinceLookup): Promise<OtpRecord | null> {
+    return this.db.otpRecord.findFirst({
+      where: {
+        code,
+        email,
+        createdAt: {
+          gte: since,
+        },
       },
       orderBy: [
         {

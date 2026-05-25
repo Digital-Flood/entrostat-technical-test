@@ -64,11 +64,13 @@ async function getDefaultOtpResendService(): Promise<OtpResendUseCase> {
     { createOtpDeliveryAdapter },
     { otpRepository, withOtpRepositoryTransaction },
     { OtpResendService },
+    { otpSettingsService },
   ] = await Promise.all([
     import('../config/otp.config.js'),
     import('../delivery/otp-delivery.adapter.js'),
     import('../repositories/otp.repository.js'),
     import('../services/otp-resend.service.js'),
+    import('../services/otp-settings.service.js'),
   ]);
   const config = getOtpConfig();
 
@@ -76,6 +78,7 @@ async function getDefaultOtpResendService(): Promise<OtpResendUseCase> {
     config,
     delivery: createOtpDeliveryAdapter(config),
     repository: otpRepository,
+    settingsProvider: otpSettingsService,
     withTransaction: withOtpRepositoryTransaction,
   });
 

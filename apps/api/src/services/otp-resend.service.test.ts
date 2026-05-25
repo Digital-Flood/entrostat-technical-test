@@ -163,10 +163,10 @@ describe('OtpResendService', () => {
       expiresInSeconds: 300,
       resendCount: 1,
     });
-    expect(JSON.stringify(result)).not.toContain('654321');
+    expect(JSON.stringify(result)).not.toContain('111111');
     expect(delivery.deliveries).toHaveLength(1);
     expect(delivery.deliveries[0]).toMatchObject({
-      code: '654321',
+      code: '111111',
       email: 'person@example.com',
       issueReason: 'RESEND',
     });
@@ -196,6 +196,40 @@ describe('OtpResendService', () => {
     );
     expect(repository.records).toHaveLength(1);
     expect(delivery.deliveries).toHaveLength(0);
+  });
+
+  it('reads runtime settings for subsequent resends', async () => {
+    const repository = new FakeOtpRepository([createRecord()]);
+    const delivery = new CapturingDeliveryAdapter();
+    const settings = {
+      expirySeconds: 45,
+      maxRequestsPerHour: 3,
+      maxResends: 2,
+      resendWindowMinutes: 5,
+    };
+    const service = new OtpResendService({
+      config: {
+        codeLength: 6,
+        expirySeconds: 300,
+        maxResends: 2,
+        resendWindowMinutes: 5,
+      },
+      delivery,
+      generateCode: () => '654321',
+      now: () => fixedNow,
+      repository,
+      settingsProvider: {
+        getSettings: () => settings,
+      },
+      withTransaction: (operation) => operation(repository),
+    });
+
+    const result = await service.resendOtp({ email: 'person@example.com' });
+
+    expect(result).toMatchObject({
+      expiresAt: '2026-05-24T12:00:45.000Z',
+      expiresInSeconds: 45,
+    });
   });
 
   it('rejects resend after the configured maximum resend count', async () => {
@@ -243,9 +277,12 @@ describe('OtpResendService', () => {
 
     await service.resendOtp({ email: 'person@example.com' });
 
-    const newRecord = repository.records.find((record) => record.code === '654321');
+    const newRecord = repository.records.find(
+      (record) => record.issueReason === 'RESEND' && record.code === '111111',
+    );
 
     expect(newRecord).toMatchObject({
+      code: '111111',
       issueReason: 'RESEND',
       requestGroupId,
       resendCount: 1,
@@ -265,7 +302,7 @@ describe('OtpResendService', () => {
 
     expect(store.list()).toEqual([
       expect.objectContaining({
-        code: '654321',
+        code: '111111',
         email: 'person@example.com',
         issueReason: 'RESEND',
       }),

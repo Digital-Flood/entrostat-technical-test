@@ -14,10 +14,6 @@ describe('createOtpDeliveryAdapter', () => {
         codeLength: 6,
         deliveryMode: 'production',
         emailFrom: undefined,
-        expirySeconds: 300,
-        maxRequestsPerHour: 5,
-        maxResends: 3,
-        resendWindowMinutes: 5,
         resendApiKey: undefined,
       }),
     ).toThrow('Production OTP delivery requires RESEND_API_KEY and OTP_EMAIL_FROM.');

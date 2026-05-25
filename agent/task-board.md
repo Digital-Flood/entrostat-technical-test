@@ -20,6 +20,7 @@ All planned steps complete.
 - Step 12: Web app scaffold with Vite React, Tailwind CSS, Framer Motion availability, workspace scripts, and a base verification console layout.
 - Step 13: Frontend OTP request, resend, verification, and demo inbox interface wired to structured API responses.
 - Step 14: Deployment configuration, Resend environment setup, production email delivery, and final documentation pass.
+- Step 15: Runtime OTP rule settings API and frontend settings modal.
 
 ## In Progress
 

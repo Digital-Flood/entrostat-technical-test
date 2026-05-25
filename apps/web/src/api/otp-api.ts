@@ -1,5 +1,11 @@
 import type { ApiErrorResponse, ApiResult, ValidationIssue } from '../types/api';
-import type { DevOtpInboxData, OtpRequestData, OtpResendData, OtpVerifyData } from '../types/otp';
+import type {
+  DevOtpInboxData,
+  OtpRequestData,
+  OtpResendData,
+  OtpSettingsData,
+  OtpVerifyData,
+} from '../types/otp';
 
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000';
 
@@ -10,6 +16,11 @@ type OtpEmailPayload = {
 type OtpVerifyPayload = OtpEmailPayload & {
   code: string;
 };
+
+type OtpSettingsPayload = Pick<
+  OtpSettingsData,
+  'expirySeconds' | 'maxRequestsPerHour' | 'maxResends' | 'resendWindowMinutes'
+>;
 
 type OtpErrorDetails = ValidationIssue[] | Record<string, unknown>;
 
@@ -62,5 +73,18 @@ export function verifyOtp(payload: OtpVerifyPayload) {
 export function fetchDemoInbox() {
   return requestJson<DevOtpInboxData>('/dev/otp-inbox', {
     method: 'GET',
+  });
+}
+
+export function fetchOtpSettings() {
+  return requestJson<OtpSettingsData>('/settings/otp', {
+    method: 'GET',
+  });
+}
+
+export function updateOtpSettings(payload: OtpSettingsPayload) {
+  return requestJson<OtpSettingsData>('/settings/otp', {
+    body: JSON.stringify(payload),
+    method: 'PUT',
   });
 }

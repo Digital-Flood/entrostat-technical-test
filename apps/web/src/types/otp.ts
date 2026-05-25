@@ -19,6 +19,14 @@ export type OtpVerifyData = {
   verifiedAt: string;
 };
 
+export type OtpSettingsData = {
+  codeLength: number;
+  expirySeconds: number;
+  maxRequestsPerHour: number;
+  maxResends: number;
+  resendWindowMinutes: number;
+};
+
 export type DevOtpInboxDelivery = {
   code: string;
   deliveredAt: string;

@@ -8,11 +8,12 @@ The project is structured as a small monorepo with a TypeScript Express API, a V
 
 - Request an OTP for an email address.
 - Resend OTPs within defined resend limits.
-- Expire OTPs after a configurable duration.
+- Expire OTPs after a runtime-configurable duration.
 - Validate only the latest issued OTP.
 - Enforce single-use verification.
-- Apply request and resend rate limits.
+- Apply runtime-configurable request and resend limits.
 - Provide a frontend testing interface for the OTP flow.
+- Provide a settings modal for adjusting OTP rule values while using the site.
 - Provide a demo-mode OTP inbox for local testing.
 - Cover core OTP business rules with automated tests.
 
@@ -94,6 +95,8 @@ npm run dev:web
 
 With the default `.env`, the API runs in demo delivery mode. Request or resend an OTP from the web app, then use the demo inbox panel to read the captured code. Normal request, resend, and verify API responses do not include OTP codes.
 
+OTP rule settings are edited from the web app while it is running. Defaults are 3 requests per hour, 30 seconds expiry, a 5 minute resend window, and 3 resends. OTP length is fixed at 6 digits.
+
 Run checks from the repository root:
 
 ```sh
@@ -110,24 +113,21 @@ npm run build -w @entrostat-otp/api
 
 Environment variables are listed in `.env.example`. Concrete values should be supplied locally and in deployment environments.
 
-| Variable                    | Required       | Use                                                                                                                         |
-| --------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`              | API            | PostgreSQL connection string for Prisma. Use the Neon pooled connection string in deployment.                               |
-| `API_PORT`                  | Local API      | Local API port. Render supplies `PORT`, which the API also honours.                                                         |
-| `WEB_PORT`                  | Local web      | Vite dev server port.                                                                                                       |
-| `VITE_API_BASE_URL`         | Web            | Browser-facing API base URL. Set this to the Render service URL in Vercel.                                                  |
-| `WEB_ORIGIN`                | API deployment | Allowed deployed frontend origin for CORS, for example the Vercel URL. Localhost origins are allowed for local development. |
-| `OTP_DELIVERY_MODE`         | API            | `demo` for local inbox capture, `production` for Resend email sending.                                                      |
-| `OTP_EXPIRY_SECONDS`        | API            | OTP lifetime in seconds.                                                                                                    |
-| `OTP_RESEND_WINDOW_MINUTES` | API            | Resend window duration.                                                                                                     |
-| `OTP_MAX_REQUESTS_PER_HOUR` | API            | Maximum request attempts per email per hour.                                                                                |
-| `OTP_MAX_RESENDS`           | API            | Maximum resend attempts per request group.                                                                                  |
-| `OTP_LENGTH`                | API            | Numeric OTP length.                                                                                                         |
-| `RESEND_API_KEY`            | Production API | Resend API key when `OTP_DELIVERY_MODE=production`.                                                                         |
-| `OTP_EMAIL_FROM`            | Production API | Verified Resend sender address.                                                                                             |
-| `NODE_ENV`                  | API            | Runtime environment.                                                                                                        |
+| Variable            | Required       | Use                                                                                                                         |
+| ------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`      | API            | PostgreSQL connection string for Prisma. Use the Neon pooled connection string in deployment.                               |
+| `API_PORT`          | Local API      | Local API port. Render supplies `PORT`, which the API also honours.                                                         |
+| `WEB_PORT`          | Local web      | Vite dev server port.                                                                                                       |
+| `VITE_API_BASE_URL` | Web            | Browser-facing API base URL. Set this to the Render service URL in Vercel.                                                  |
+| `WEB_ORIGIN`        | API deployment | Allowed deployed frontend origin for CORS, for example the Vercel URL. Localhost origins are allowed for local development. |
+| `OTP_DELIVERY_MODE` | API            | `demo` for local inbox capture, `production` for Resend email sending.                                                      |
+| `RESEND_API_KEY`    | Production API | Resend API key when `OTP_DELIVERY_MODE=production`.                                                                         |
+| `OTP_EMAIL_FROM`    | Production API | Verified Resend sender address.                                                                                             |
+| `NODE_ENV`          | API            | Runtime environment.                                                                                                        |
 
 The web app calls the API configured by `VITE_API_BASE_URL`. Local API CORS defaults allow localhost Vite dev server origins.
+
+OTP rule values are not deployment environment variables. The API keeps them in memory for this assessment and exposes `GET /settings/otp` and `PUT /settings/otp` for the frontend settings modal.
 
 ## Deployment
 

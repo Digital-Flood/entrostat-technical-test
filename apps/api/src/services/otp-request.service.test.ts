@@ -8,7 +8,11 @@ import {
   type OtpDeliveryRequest,
   type OtpDeliveryResult,
 } from '../delivery/otp-delivery.adapter.js';
-import type { CreateOtpRecordInput, SupersedeActiveInput } from '../repositories/otp.repository.js';
+import type {
+  CreateOtpRecordInput,
+  EmailAndCodeSinceLookup,
+  SupersedeActiveInput,
+} from '../repositories/otp.repository.js';
 import { OtpRequestService, type OtpRequestRepository } from './otp-request.service.js';
 import { OtpRequestRateLimitError } from './otp-request.errors.js';
 
@@ -50,6 +54,28 @@ class FakeOtpRepository implements OtpRequestRepository {
     this.records.push(record);
 
     return record;
+  }
+
+  async findByEmailAndCodeCreatedSince({
+    code,
+    email,
+    since,
+  }: EmailAndCodeSinceLookup): Promise<OtpRecord | null> {
+    return (
+      this.records
+        .filter(
+          (record) => record.email === email && record.code === code && record.createdAt >= since,
+        )
+        .sort((left, right) => {
+          const createdAtDifference = right.createdAt.getTime() - left.createdAt.getTime();
+
+          if (createdAtDifference !== 0) {
+            return createdAtDifference;
+          }
+
+          return right.id.localeCompare(left.id);
+        })[0] ?? null
+    );
   }
 
   async supersedeActiveForEmail(input: SupersedeActiveInput): Promise<{ count: number }> {
@@ -163,6 +189,39 @@ describe('OtpRequestService', () => {
     expect(delivery.deliveries).toHaveLength(0);
   });
 
+  it('reads runtime settings for subsequent requests', async () => {
+    const repository = new FakeOtpRepository();
+    const delivery = new CapturingDeliveryAdapter();
+    const settings = {
+      expirySeconds: 45,
+      maxRequestsPerHour: 2,
+      maxResends: 3,
+      resendWindowMinutes: 5,
+    };
+    const service = new OtpRequestService({
+      config: {
+        codeLength: 6,
+        expirySeconds: 300,
+        maxRequestsPerHour: 5,
+      },
+      delivery,
+      generateCode: () => '654321',
+      now: () => fixedNow,
+      repository,
+      settingsProvider: {
+        getSettings: () => settings,
+      },
+      withTransaction: (operation) => operation(repository),
+    });
+
+    const result = await service.requestOtp({ email: 'person@example.com' });
+
+    expect(result).toMatchObject({
+      expiresAt: '2026-05-24T12:00:45.000Z',
+      expiresInSeconds: 45,
+    });
+  });
+
   it('supersedes previous active OTP records for the same email', async () => {
     const previousRecord = createRecord({
       code: '111111',
@@ -180,6 +239,52 @@ describe('OtpRequestService', () => {
     expect(previousRecord.supersededAt).toEqual(fixedNow);
     expect(previousRecord.supersededById).toBe(newRecord?.id);
     expect(newRecord?.status).toBe('ACTIVE');
+  });
+
+  it('silently retries when a generated OTP was already issued to the same user within 24 hours', async () => {
+    const repository = new FakeOtpRepository([
+      createRecord({
+        code: '654321',
+        createdAt: new Date('2026-05-23T12:00:01.000Z'),
+        id: 'recent-duplicate',
+      }),
+    ]);
+    const delivery = new CapturingDeliveryAdapter();
+    const codes = ['654321', '123456'];
+    const service = new OtpRequestService({
+      config: {
+        codeLength: 6,
+        expirySeconds: 300,
+        maxRequestsPerHour: 2,
+      },
+      delivery,
+      generateCode: () => codes.shift() ?? '000000',
+      now: () => fixedNow,
+      repository,
+      withTransaction: (operation) => operation(repository),
+    });
+
+    await service.requestOtp({ email: 'person@example.com' });
+
+    expect(delivery.deliveries[0]?.code).toBe('123456');
+    expect(repository.records.at(-1)?.code).toBe('123456');
+  });
+
+  it('allows generated OTP codes last issued to the same user more than 24 hours ago', async () => {
+    const repository = new FakeOtpRepository([
+      createRecord({
+        code: '654321',
+        createdAt: new Date('2026-05-23T11:59:59.000Z'),
+        id: 'old-duplicate',
+      }),
+    ]);
+    const delivery = new CapturingDeliveryAdapter();
+    const service = createService(repository, delivery);
+
+    await service.requestOtp({ email: 'person@example.com' });
+
+    expect(delivery.deliveries[0]?.code).toBe('654321');
+    expect(repository.records.at(-1)?.code).toBe('654321');
   });
 
   it('captures demo deliveries in the demo inbox store', async () => {

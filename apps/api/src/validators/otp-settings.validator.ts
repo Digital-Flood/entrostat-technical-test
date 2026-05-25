@@ -2,38 +2,24 @@ import { ApiErrorCode, createErrorResponse } from '@entrostat-otp/shared';
 import type { RequestHandler } from 'express';
 import { z } from 'zod';
 
-import { DEFAULT_OTP_CODE_LENGTH } from '../config/otp.config.js';
+export const otpSettingsSchema = z
+  .object({
+    expirySeconds: z.number().int().positive(),
+    maxRequestsPerHour: z.number().int().positive(),
+    maxResends: z.number().int().positive(),
+    resendWindowMinutes: z.number().int().positive(),
+  })
+  .strict();
 
-export type OtpVerifyBody = {
-  code: string;
-  email: string;
-};
-
-export function createOtpVerifySchema(codeLength = DEFAULT_OTP_CODE_LENGTH) {
-  return z
-    .object({
-      code: z
-        .string()
-        .trim()
-        .length(codeLength)
-        .regex(/^\d+$/, 'OTP code must contain digits only.'),
-      email: z
-        .string()
-        .trim()
-        .email()
-        .max(320)
-        .transform((email) => email.toLowerCase()),
-    })
-    .strict();
-}
+export type OtpSettingsBody = z.infer<typeof otpSettingsSchema>;
 
 type ValidationIssue = {
   field: string;
   message: string;
 };
 
-export const validateOtpVerifyBody: RequestHandler = (request, response, next) => {
-  const result = createOtpVerifySchema().safeParse(request.body);
+export const validateOtpSettingsBody: RequestHandler = (request, response, next) => {
+  const result = otpSettingsSchema.safeParse(request.body);
 
   if (!result.success) {
     response

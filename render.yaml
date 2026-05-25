@@ -11,16 +11,6 @@ services:
         value: production
       - key: OTP_DELIVERY_MODE
         value: production
-      - key: OTP_EXPIRY_SECONDS
-        value: '300'
-      - key: OTP_RESEND_WINDOW_MINUTES
-        value: '5'
-      - key: OTP_MAX_REQUESTS_PER_HOUR
-        value: '5'
-      - key: OTP_MAX_RESENDS
-        value: '3'
-      - key: OTP_LENGTH
-        value: '6'
       - key: DATABASE_URL
         sync: false
       - key: RESEND_API_KEY
