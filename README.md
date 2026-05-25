@@ -1,6 +1,6 @@
 # Entrostat OTP Assessment
 
-Hello Entrostat!
+Hello Entrotat!
 
 The project is structured as a small monorepo with a TypeScript Express API, a Vite React frontend, shared TypeScript utilities, Prisma-managed PostgreSQL data access, and Docker Compose support for local database development.
 
