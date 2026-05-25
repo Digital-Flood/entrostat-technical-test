@@ -91,7 +91,7 @@ export class ProductionOtpDeliveryAdapter implements OtpDeliveryAdapter {
   async deliver(request: OtpDeliveryRequest): Promise<OtpDeliveryResult> {
     await this.emailClient.send({
       from: this.emailFrom,
-      subject: 'Your Entrostat OTP code',
+      subject: 'Your OTP Guard code',
       text: createOtpEmailText(request),
       to: request.email,
     });
@@ -151,9 +151,21 @@ export class ResendHttpEmailClient implements OtpEmailClient {
 function createOtpEmailText(request: OtpDeliveryRequest): string {
   return [
     `Your Entrostat OTP code is ${request.code}.`,
-    `It expires at ${request.expiresAt.toISOString()}.`,
+    `It expires at ${formatOtpExpiry(request.expiresAt)}.`,
     'If you did not request this code, ignore this email.',
   ].join('\n\n');
+}
+
+function formatOtpExpiry(expiresAt: Date): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    month: 'short',
+    timeZone: 'UTC',
+    timeZoneName: 'short',
+    year: 'numeric',
+  }).format(expiresAt);
 }
 
 export const demoOtpDeliveryStore = new DemoOtpDeliveryStore();

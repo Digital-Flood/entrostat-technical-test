@@ -50,8 +50,12 @@ describe('ProductionOtpDeliveryAdapter', () => {
     expect(sentMessages).toEqual([
       {
         from: 'Entrostat OTP <otp@example.com>',
-        subject: 'Your Entrostat OTP code',
-        text: expect.stringContaining('123456') as string,
+        subject: 'Your OTP Guard code',
+        text: [
+          'Your Entrostat OTP code is 123456.',
+          'It expires at 24 May 2026, 12:05 UTC.',
+          'If you did not request this code, ignore this email.',
+        ].join('\n\n'),
         to: 'person@example.com',
       },
     ]);

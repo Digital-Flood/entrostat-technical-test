@@ -218,6 +218,11 @@ function App() {
 
   async function handleRequestOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isBusy) {
+      return;
+    }
+
     setPendingAction('request');
     setNotice(null);
 
@@ -254,6 +259,10 @@ function App() {
   }
 
   async function handleResendOtp() {
+    if (isBusy) {
+      return;
+    }
+
     setPendingAction('resend');
     setNotice(null);
 
@@ -288,6 +297,11 @@ function App() {
 
   async function handleVerifyOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isBusy) {
+      return;
+    }
+
     setPendingAction('verify');
     setNotice(null);
 
@@ -388,6 +402,11 @@ function App() {
 
   async function handleSaveSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (settingsSaving) {
+      return;
+    }
+
     setSettingsSaving(true);
     setSettingsError(null);
 
@@ -436,13 +455,18 @@ function App() {
             </div>
           </div>
           <button
+            aria-busy={settingsLoading}
             aria-haspopup="dialog"
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-raised/60 px-4 text-sm font-semibold text-text-primary shadow-panel transition hover:border-border-active hover:bg-surface-raised active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
+            className="inline-flex h-11 min-w-[7.5rem] shrink-0 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-raised/60 px-4 text-sm font-semibold text-text-primary shadow-panel transition hover:border-border-active hover:bg-surface-raised active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
             disabled={settingsLoading}
             onClick={openSettings}
             type="button"
           >
-            <Icon name="gear" className="h-4 w-4 text-soft-blue" />
+            {settingsLoading ? (
+              <LoadingSpinner />
+            ) : (
+              <Icon name="gear" className="h-4 w-4 text-soft-blue" />
+            )}
             {settingsLoading ? 'Loading' : 'Settings'}
           </button>
         </header>
@@ -499,20 +523,30 @@ function App() {
 
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <button
-                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary-blue px-4 text-sm font-semibold text-white shadow-action transition hover:bg-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none sm:w-auto"
+                        aria-busy={pendingAction === 'request'}
+                        className="inline-flex h-11 w-full min-w-[9.75rem] items-center justify-center gap-2 rounded-xl bg-primary-blue px-4 text-sm font-semibold text-white shadow-action transition hover:bg-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none sm:w-auto"
                         disabled={isBusy || email.trim().length === 0}
                         type="submit"
                       >
-                        <Icon name="send" className="h-4 w-4" />
+                        {pendingAction === 'request' ? (
+                          <LoadingSpinner />
+                        ) : (
+                          <Icon name="send" className="h-4 w-4" />
+                        )}
                         {pendingAction === 'request' ? 'Requesting' : 'Request OTP'}
                       </button>
                       <button
-                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-raised/50 px-4 text-sm font-semibold text-text-primary transition hover:border-border-active hover:bg-surface-raised active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto"
+                        aria-busy={pendingAction === 'resend'}
+                        className="inline-flex h-11 w-full min-w-[9.25rem] items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-raised/50 px-4 text-sm font-semibold text-text-primary transition hover:border-border-active hover:bg-surface-raised active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto"
                         disabled={isBusy || email.trim().length === 0}
                         onClick={handleResendOtp}
                         type="button"
                       >
-                        <Icon name="refresh" className="h-4 w-4" />
+                        {pendingAction === 'resend' ? (
+                          <LoadingSpinner />
+                        ) : (
+                          <Icon name="refresh" className="h-4 w-4" />
+                        )}
                         {pendingAction === 'resend' ? 'Resending' : 'Resend OTP'}
                       </button>
                     </div>
@@ -634,13 +668,18 @@ function App() {
                     </div>
 
                     <button
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary-blue px-4 text-sm font-semibold text-white shadow-action transition hover:bg-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none sm:w-auto"
+                      aria-busy={pendingAction === 'verify'}
+                      className="inline-flex h-11 w-full min-w-[8.75rem] items-center justify-center gap-2 rounded-xl bg-primary-blue px-4 text-sm font-semibold text-white shadow-action transition hover:bg-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none sm:w-auto"
                       disabled={
                         isBusy || verifyEmail.trim().length === 0 || normalisedCode.length === 0
                       }
                       type="submit"
                     >
-                      <Icon name="check" className="h-4 w-4" />
+                      {pendingAction === 'verify' ? (
+                        <LoadingSpinner />
+                      ) : (
+                        <Icon name="check" className="h-4 w-4" />
+                      )}
                       {pendingAction === 'verify' ? 'Verifying' : 'Verify OTP'}
                     </button>
                   </form>
@@ -672,7 +711,11 @@ function App() {
           }}
           onClose={() => setIsDrawerOpen(false)}
           onOpen={() => setIsDrawerOpen(true)}
-          onRefresh={() => void refreshInbox()}
+          onRefresh={() => {
+            if (!inboxLoading) {
+              void refreshInbox();
+            }
+          }}
         />
       ) : null}
 
@@ -807,13 +850,18 @@ function DemoDrawer({
                     Demo deliveries
                   </p>
                   <button
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-raised/50 px-3 text-sm font-semibold text-text-primary transition hover:border-border-active hover:bg-surface-raised active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
+                    aria-busy={inboxLoading}
+                    className="inline-flex h-10 min-w-[7.75rem] items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-raised/50 px-3 text-sm font-semibold text-text-primary transition hover:border-border-active hover:bg-surface-raised active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
                     disabled={inboxLoading}
                     onClick={onRefresh}
                     type="button"
                   >
-                    <Icon name="refresh" className="h-4 w-4" />
-                    {inboxLoading ? 'Loading' : 'Refresh'}
+                    {inboxLoading ? (
+                      <LoadingSpinner />
+                    ) : (
+                      <Icon name="refresh" className="h-4 w-4" />
+                    )}
+                    {inboxLoading ? 'Refreshing' : 'Refresh'}
                   </button>
                 </div>
 
@@ -946,11 +994,12 @@ function SettingsModal({
                     Cancel
                   </button>
                   <button
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary-blue px-4 text-sm font-semibold text-white shadow-action transition hover:bg-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none"
+                    aria-busy={isSaving}
+                    className="inline-flex h-11 min-w-[9.75rem] items-center justify-center gap-2 rounded-xl bg-primary-blue px-4 text-sm font-semibold text-white shadow-action transition hover:bg-blue-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 disabled:shadow-none"
                     disabled={isSaving}
                     type="submit"
                   >
-                    <Icon name="check" className="h-4 w-4" />
+                    {isSaving ? <LoadingSpinner /> : <Icon name="check" className="h-4 w-4" />}
                     {isSaving ? 'Saving' : 'Save settings'}
                   </button>
                 </div>
@@ -1101,9 +1150,7 @@ function InboxDelivery({ delivery }: { delivery: DevOtpInboxDelivery }) {
       </div>
       <dl className="mt-4 grid gap-2 text-xs text-text-muted">
         <div className="flex justify-between gap-3">
-          <dt className="inline-flex items-center gap-1.5">
-            Delivered
-          </dt>
+          <dt className="inline-flex items-center gap-1.5">Delivered</dt>
           <dd className="text-right text-text-secondary">{formatDate(delivery.deliveredAt)}</dd>
         </div>
         <div className="flex justify-between gap-3">
@@ -1196,6 +1243,15 @@ function Icon({ className = 'h-5 w-5', name }: { className?: string; name: IconN
     >
       {paths[name]}
     </svg>
+  );
+}
+
+function LoadingSpinner() {
+  return (
+    <span
+      aria-hidden="true"
+      className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-r-transparent opacity-90"
+    />
   );
 }
 
