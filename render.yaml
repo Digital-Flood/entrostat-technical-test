@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm ci --include=dev && npm run build -w @entrostat-otp/api
-    startCommand: npm run db:migrate:deploy && npm run start -w @entrostat-otp/api
+    startCommand: npm run start -w @entrostat-otp/api
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV

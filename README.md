@@ -170,16 +170,17 @@ Render setup:
 
 1. Create a Render Blueprint from `render.yaml`, or mirror its build and start commands in a web service.
 2. Keep the Render build command as `npm ci --include=dev && npm run build -w @entrostat-otp/api`; the API build needs workspace build tooling.
-3. Set `OTP_DELIVERY_MODE=production`, `RESEND_API_KEY`, and `OTP_EMAIL_FROM`.
-4. Set `DATABASE_URL` to the Neon PostgreSQL connection string.
-5. Set `WEB_ORIGIN` to the deployed Vercel origin.
-6. Render supplies `PORT`; `API_PORT` is only needed locally.
+3. Keep the Render start command as `npm run start -w @entrostat-otp/api` so the Express process starts directly. The `/health` endpoint is registered during API boot and is available as soon as the process is listening.
+4. Set `OTP_DELIVERY_MODE=production`, `RESEND_API_KEY`, and `OTP_EMAIL_FROM`.
+5. Set `DATABASE_URL` to the Neon PostgreSQL connection string.
+6. Set `WEB_ORIGIN` to the deployed Vercel origin.
+7. Render supplies `PORT`; `API_PORT` is only needed locally.
 
 Neon setup:
 
 1. Create a PostgreSQL database.
 2. Use the Neon connection string as `DATABASE_URL` on Render.
-3. The Render start command runs `npm run db:migrate:deploy` before starting the API. The Prisma CLI is a runtime dependency so migration deploy remains available when `NODE_ENV=production`.
+3. Run production migrations manually before deployment, or as an explicit deploy-time step, with `npm run db:migrate:deploy`. Do not run migrations from the normal Render start command because free-tier services may wake frequently and every wake should start the API directly.
 
 ## Project Status
 
