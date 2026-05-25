@@ -65,6 +65,7 @@ const DEFAULT_OTP_SETTINGS: OtpSettingsData = {
   maxResends: 3,
   resendWindowMinutes: 5,
 };
+const IS_PRODUCTION_BUILD = import.meta.env.PROD;
 
 const errorTitles: Record<string, string> = {
   NOT_FOUND: 'Not found',
@@ -90,6 +91,7 @@ function App() {
   const [inboxLoading, setInboxLoading] = useState(false);
   const [inboxUnavailable, setInboxUnavailable] = useState(false);
   const [inboxError, setInboxError] = useState<string | null>(null);
+  const [hasCheckedInbox, setHasCheckedInbox] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<OtpSettingsData>(DEFAULT_OTP_SETTINGS);
@@ -111,6 +113,7 @@ function App() {
   const isVerifyPhase = viewPhase === 'verify';
   const isSuccessPhase = viewPhase === 'success';
   const normalisedCode = normaliseOtp(code);
+  const isDemoDrawerAvailable = !IS_PRODUCTION_BUILD && hasCheckedInbox && !inboxUnavailable;
 
   const flowState = useMemo(() => {
     if (verification) {
@@ -131,7 +134,10 @@ function App() {
       : 'Demo ready';
 
   useEffect(() => {
-    void refreshInbox();
+    if (!IS_PRODUCTION_BUILD) {
+      void refreshInbox();
+    }
+
     void refreshSettings();
   }, []);
 
@@ -184,6 +190,7 @@ function App() {
     } catch {
       setInboxError('Demo inbox could not be reached.');
     } finally {
+      setHasCheckedInbox(true);
       setInboxLoading(false);
     }
   }
@@ -229,11 +236,16 @@ function App() {
       setVerifyEmail(result.body.data.email);
       setViewPhase('verify');
       setNotice({
-        message: 'A fresh code has been issued. Use the demo drawer in local mode.',
+        message:
+          result.body.data.delivery.mode === 'demo' && !IS_PRODUCTION_BUILD
+            ? 'A fresh code has been issued. Use the demo drawer in local mode.'
+            : 'A fresh code has been issued. Check your email for the OTP.',
         title: 'OTP requested',
         tone: 'success',
       });
-      await refreshInbox();
+      if (!IS_PRODUCTION_BUILD) {
+        await refreshInbox();
+      }
     } catch {
       setNotice(createNetworkNotice());
     } finally {
@@ -264,7 +276,9 @@ function App() {
         title: 'OTP resent',
         tone: 'success',
       });
-      await refreshInbox();
+      if (!IS_PRODUCTION_BUILD) {
+        await refreshInbox();
+      }
     } catch {
       setNotice(createNetworkNotice());
     } finally {
@@ -639,26 +653,28 @@ function App() {
         </section>
       </div>
 
-      <DemoDrawer
-        apiBaseUrl={apiBaseUrl}
-        deliveryState={deliveryState}
-        flowState={flowState}
-        inbox={inbox}
-        inboxError={inboxError}
-        inboxLoading={inboxLoading}
-        inboxUnavailable={inboxUnavailable}
-        isOpen={isDrawerOpen}
-        metadata={{
-          delivery: metadata ? deliveryState : 'Not sent',
-          email: currentEmail || 'Not set',
-          expiry: metadata ? formatDate(metadata.expiresAt) : 'Not issued',
-          resends: String(resendCount),
-          verified: verification ? formatDate(verification.verifiedAt) : 'Not verified',
-        }}
-        onClose={() => setIsDrawerOpen(false)}
-        onOpen={() => setIsDrawerOpen(true)}
-        onRefresh={() => void refreshInbox()}
-      />
+      {isDemoDrawerAvailable ? (
+        <DemoDrawer
+          apiBaseUrl={apiBaseUrl}
+          deliveryState={deliveryState}
+          flowState={flowState}
+          inbox={inbox}
+          inboxError={inboxError}
+          inboxLoading={inboxLoading}
+          inboxUnavailable={inboxUnavailable}
+          isOpen={isDrawerOpen}
+          metadata={{
+            delivery: metadata ? deliveryState : 'Not sent',
+            email: currentEmail || 'Not set',
+            expiry: metadata ? formatDate(metadata.expiresAt) : 'Not issued',
+            resends: String(resendCount),
+            verified: verification ? formatDate(verification.verifiedAt) : 'Not verified',
+          }}
+          onClose={() => setIsDrawerOpen(false)}
+          onOpen={() => setIsDrawerOpen(true)}
+          onRefresh={() => void refreshInbox()}
+        />
+      ) : null}
 
       <SettingsModal
         draft={settingsDraft}
