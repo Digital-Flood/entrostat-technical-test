@@ -5,6 +5,13 @@ export class OtpResendMissingError extends Error {
   }
 }
 
+export class OtpResendReusedError extends Error {
+  constructor() {
+    super('OTP has already been verified.');
+    this.name = 'OtpResendReusedError';
+  }
+}
+
 export class OtpResendWindowExpiredError extends Error {
   constructor(
     readonly resendWindowMinutes: number,

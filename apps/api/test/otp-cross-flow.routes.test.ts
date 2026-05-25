@@ -423,6 +423,30 @@ describe('OTP API cross-flow behaviour', () => {
     });
   });
 
+  it('rejects resend after the latest OTP has already been verified', async () => {
+    const { app, delivery } = createCrossFlowHarness({ codeSequence: ['111111'] });
+
+    await request(app).post('/otp/request').send({ email: 'person@example.com' });
+    const verifyResponse = await request(app).post('/otp/verify').send({
+      code: '111111',
+      email: 'person@example.com',
+    });
+    const resendResponse = await request(app).post('/otp/resend').send({
+      email: 'person@example.com',
+    });
+
+    expect(verifyResponse.status).toBe(200);
+    expect(resendResponse.status).toBe(409);
+    expect(resendResponse.body).toEqual({
+      ok: false,
+      error: {
+        code: 'OTP_REUSED',
+        message: 'OTP has already been verified.',
+      },
+    });
+    expect((delivery as CapturingDeliveryAdapter).deliveries).toHaveLength(1);
+  });
+
   it('rejects the latest OTP at the expiry boundary', async () => {
     const { app, clock } = createCrossFlowHarness({
       codeSequence: ['111111'],

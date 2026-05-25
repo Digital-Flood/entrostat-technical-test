@@ -12,6 +12,7 @@ import type { CreateOtpRecordInput, SupersedeActiveInput } from '../repositories
 import {
   OtpResendLimitError,
   OtpResendMissingError,
+  OtpResendReusedError,
   OtpResendService,
   OtpResendWindowExpiredError,
   type OtpResendRepository,
@@ -263,6 +264,23 @@ describe('OtpResendService', () => {
       OtpResendLimitError,
     );
     expect(repository.records).toHaveLength(3);
+    expect(delivery.deliveries).toHaveLength(0);
+  });
+
+  it('rejects resend when the latest OTP has already been verified', async () => {
+    const repository = new FakeOtpRepository([
+      createRecord({
+        status: 'VERIFIED',
+        verifiedAt: new Date('2026-05-24T11:59:00.000Z'),
+      }),
+    ]);
+    const delivery = new CapturingDeliveryAdapter();
+    const service = createService(repository, delivery);
+
+    await expect(service.resendOtp({ email: 'person@example.com' })).rejects.toBeInstanceOf(
+      OtpResendReusedError,
+    );
+    expect(repository.records).toHaveLength(1);
     expect(delivery.deliveries).toHaveLength(0);
   });
 

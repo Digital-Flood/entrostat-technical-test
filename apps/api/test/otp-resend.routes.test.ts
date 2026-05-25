@@ -6,6 +6,7 @@ import type { OtpResendUseCase } from '../src/controllers/otp-resend.controller.
 import {
   OtpResendLimitError,
   OtpResendMissingError,
+  OtpResendReusedError,
   OtpResendWindowExpiredError,
 } from '../src/services/otp-resend.service.js';
 
@@ -153,6 +154,30 @@ describe('POST /otp/resend', () => {
           maxResends: 3,
         },
         message: 'OTP resend limit exceeded.',
+      },
+    });
+  });
+
+  it('returns a reused OTP error envelope when the latest OTP has been verified', async () => {
+    const resendOtp = vi
+      .fn<OtpResendUseCase['resendOtp']>()
+      .mockRejectedValue(new OtpResendReusedError());
+    const app = createApp({
+      otp: {
+        resendService: {
+          resendOtp,
+        },
+      },
+    });
+
+    const response = await request(app).post('/otp/resend').send({ email: 'person@example.com' });
+
+    expect(response.status).toBe(409);
+    expect(response.body).toEqual({
+      ok: false,
+      error: {
+        code: 'OTP_REUSED',
+        message: 'OTP has already been verified.',
       },
     });
   });

@@ -4,6 +4,7 @@ import type { RequestHandler } from 'express';
 import {
   OtpResendLimitError,
   OtpResendMissingError,
+  OtpResendReusedError,
   OtpResendWindowExpiredError,
   type OtpResendResult,
 } from '../services/otp-resend.service.js';
@@ -35,6 +36,13 @@ export function createOtpResendController(service?: OtpResendUseCase): RequestHa
             resendWindowMinutes: error.resendWindowMinutes,
           }),
         );
+        return;
+      }
+
+      if (error instanceof OtpResendReusedError) {
+        response
+          .status(409)
+          .json(createErrorResponse(ApiErrorCode.OtpReused, 'OTP has already been verified.'));
         return;
       }
 

@@ -11,6 +11,7 @@ import type { CreateOtpRecordInput, SupersedeActiveInput } from '../repositories
 import {
   OtpResendLimitError,
   OtpResendMissingError,
+  OtpResendReusedError,
   OtpResendWindowExpiredError,
 } from './otp-resend.errors.js';
 import { otpSettingsService, type OtpSettingsProvider } from './otp-settings.service.js';
@@ -79,6 +80,10 @@ export class OtpResendService {
 
       if (!latestRecord) {
         throw new OtpResendMissingError();
+      }
+
+      if (latestRecord.status === 'VERIFIED' || latestRecord.verifiedAt !== null) {
+        throw new OtpResendReusedError();
       }
 
       const resendAvailableUntil = this.getResendAvailableUntil(latestRecord, settings);
@@ -183,5 +188,6 @@ function createSettingsProvider(config: OtpResendConfig): Pick<OtpSettingsProvid
 export {
   OtpResendLimitError,
   OtpResendMissingError,
+  OtpResendReusedError,
   OtpResendWindowExpiredError,
 } from './otp-resend.errors.js';

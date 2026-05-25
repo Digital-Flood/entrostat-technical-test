@@ -174,6 +174,28 @@ describe('OtpRequestService', () => {
     });
   });
 
+  it('preserves generated OTP codes that start with zero', async () => {
+    const repository = new FakeOtpRepository();
+    const delivery = new CapturingDeliveryAdapter();
+    const service = new OtpRequestService({
+      config: {
+        codeLength: 6,
+        expirySeconds: 300,
+        maxRequestsPerHour: 2,
+      },
+      delivery,
+      generateCode: () => '012345',
+      now: () => fixedNow,
+      repository,
+      withTransaction: (operation) => operation(repository),
+    });
+
+    await service.requestOtp({ email: 'person@example.com' });
+
+    expect(delivery.deliveries[0]?.code).toBe('012345');
+    expect(repository.records.at(-1)?.code).toBe('012345');
+  });
+
   it('rejects requests over the configured hourly request limit', async () => {
     const repository = new FakeOtpRepository([
       createRecord({ createdAt: new Date('2026-05-24T11:10:00.000Z'), id: 'request-1' }),

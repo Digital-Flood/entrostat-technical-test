@@ -763,7 +763,7 @@ function DemoDrawer({
                 </button>
               </div>
 
-              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-24 pt-5 sm:px-6 sm:pb-12 sm:pt-6">
                 <dl className="grid gap-3">
                   <HeaderMetric label="Flow" value={flowState} />
                   <HeaderMetric label="Delivery" value={deliveryState} />
