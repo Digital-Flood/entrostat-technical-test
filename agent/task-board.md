@@ -22,6 +22,7 @@ All planned steps complete.
 - Step 14: Deployment configuration, Resend environment setup, production email delivery, and final documentation pass.
 - Step 15: Runtime OTP rule settings API and frontend settings modal.
 - OTP security audit: verified request, resend, expiry, latest-code-only, duplicate-code, and single-use rules; blocked resending already verified OTPs.
+- Frontend API resilience: added Render cold-start readiness, wake-and-retry submission handling, and gateway error classification.
 
 ## In Progress
 

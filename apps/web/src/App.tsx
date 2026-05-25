@@ -14,12 +14,14 @@ import {
   apiBaseUrl,
   fetchDemoInbox,
   fetchOtpSettings,
+  requestWithApiWakeRetry,
   requestOtp,
   resendOtp,
   updateOtpSettings,
   verifyOtp,
+  waitForApiHealth,
 } from './api/otp-api';
-import type { ApiErrorBody, ValidationIssue } from './types/api';
+import type { ApiErrorBody, ApiResult, ValidationIssue } from './types/api';
 import type {
   DevOtpInboxData,
   DevOtpInboxDelivery,
@@ -30,6 +32,7 @@ import type {
 } from './types/otp';
 
 type PendingAction = 'request' | 'resend' | 'verify';
+type ApiReadiness = 'checking' | 'ready' | 'starting' | 'unavailable';
 type ViewPhase = 'request' | 'success' | 'verify';
 
 type Notice = {
@@ -76,6 +79,7 @@ const errorTitles: Record<string, string> = {
   OTP_RESEND_LIMITED: 'Resend limit reached',
   OTP_REUSED: 'OTP already used',
   OTP_SUPERSEDED: 'OTP superseded',
+  INTERNAL_SERVER_ERROR: 'Server error',
   VALIDATION_ERROR: 'Check the form',
 };
 
@@ -102,6 +106,7 @@ function App() {
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [viewPhase, setViewPhase] = useState<ViewPhase>('request');
+  const [apiReadiness, setApiReadiness] = useState<ApiReadiness>('checking');
   const otpInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const validationIssues = notice?.tone === 'error' ? notice.validationIssues : undefined;
@@ -134,11 +139,39 @@ function App() {
       : 'Demo ready';
 
   useEffect(() => {
+    let isMounted = true;
+
+    async function primeApiReadiness() {
+      setApiReadiness('starting');
+      const healthResult = await waitForApiHealth();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (healthResult.ok) {
+        setApiReadiness('ready');
+        if (!IS_PRODUCTION_BUILD) {
+          void refreshInbox();
+        }
+        void refreshSettings();
+        return;
+      }
+
+      setApiReadiness('unavailable');
+    }
+
+    void primeApiReadiness();
+
     if (!IS_PRODUCTION_BUILD) {
       void refreshInbox();
     }
 
     void refreshSettings();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -174,19 +207,19 @@ function App() {
     try {
       const result = await fetchDemoInbox();
 
-      if (result.body.ok) {
+      if (result.kind === 'success') {
         setInbox(result.body.data);
         setInboxUnavailable(false);
         return;
       }
 
-      if (result.status === 404) {
+      if (result.kind === 'api-error' && result.status === 404) {
         setInbox(null);
         setInboxUnavailable(true);
         return;
       }
 
-      setInboxError(result.body.error.message);
+      setInboxError(getApiResultMessage(result));
     } catch {
       setInboxError('Demo inbox could not be reached.');
     } finally {
@@ -202,8 +235,8 @@ function App() {
     try {
       const result = await fetchOtpSettings();
 
-      if (!result.body.ok) {
-        setSettingsError(result.body.error.message);
+      if (result.kind !== 'success') {
+        setSettingsError(getApiResultMessage(result));
         return;
       }
 
@@ -216,111 +249,116 @@ function App() {
     }
   }
 
-  async function handleRequestOtp(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function runOtpSubmission<Data>(
+    action: PendingAction,
+    operation: () => Promise<ApiResult<Data, ValidationIssue[] | Record<string, unknown>>>,
+    onSuccess: (data: Data) => Promise<void> | void,
+  ) {
     if (isBusy) {
       return;
     }
 
-    setPendingAction('request');
+    setPendingAction(action);
     setNotice(null);
 
     try {
-      const result = await requestOtp({ email });
+      const result = await requestWithApiWakeRetry(operation, {
+        onApiReady: () => {
+          setApiReadiness('ready');
+          setNotice({
+            message: 'Secure channel established. Retrying the submitted action once.',
+            title: 'API ready',
+            tone: 'info',
+          });
+        },
+        onWaitingForApi: () => {
+          setApiReadiness('starting');
+          setNotice(createApiStartingNotice());
+        },
+      });
 
-      if (!result.body.ok) {
-        setNotice(createErrorNotice(result.body.error));
+      if (result.kind !== 'success') {
+        if (result.kind === 'api-starting' || result.kind === 'network-error') {
+          setApiReadiness(result.wakeTimedOut ? 'unavailable' : 'starting');
+        }
+
+        setNotice(createNoticeFromApiResult(result));
         return;
       }
 
-      setMetadata(result.body.data);
-      setVerification(null);
-      setCode('');
-      setEmail(result.body.data.email);
-      setVerifyEmail(result.body.data.email);
-      setViewPhase('verify');
-      setNotice({
-        message:
-          result.body.data.delivery.mode === 'demo' && !IS_PRODUCTION_BUILD
-            ? 'A fresh code has been issued. Use the demo drawer in local mode.'
-            : 'A fresh code has been issued. Check your email for the OTP.',
-        title: 'OTP requested',
-        tone: 'success',
-      });
-      if (!IS_PRODUCTION_BUILD) {
-        await refreshInbox();
-      }
+      setApiReadiness('ready');
+      await onSuccess(result.body.data);
     } catch {
+      setApiReadiness('unavailable');
       setNotice(createNetworkNotice());
     } finally {
       setPendingAction(null);
     }
   }
 
+  async function handleRequestOtp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    await runOtpSubmission(
+      'request',
+      () => requestOtp({ email }),
+      async (data) => {
+        setMetadata(data);
+        setVerification(null);
+        setCode('');
+        setEmail(data.email);
+        setVerifyEmail(data.email);
+        setViewPhase('verify');
+        setNotice({
+          message:
+            data.delivery.mode === 'demo' && !IS_PRODUCTION_BUILD
+              ? 'A fresh code has been issued. Use the demo drawer in local mode.'
+              : 'A fresh code has been issued. Check your email for the OTP.',
+          title: 'OTP requested',
+          tone: 'success',
+        });
+        if (!IS_PRODUCTION_BUILD) {
+          await refreshInbox();
+        }
+      },
+    );
+  }
+
   async function handleResendOtp() {
-    if (isBusy) {
-      return;
-    }
-
-    setPendingAction('resend');
-    setNotice(null);
-
-    try {
-      const result = await resendOtp({ email });
-
-      if (!result.body.ok) {
-        setNotice(createErrorNotice(result.body.error));
-        return;
-      }
-
-      setMetadata(result.body.data);
-      setVerification(null);
-      setCode('');
-      setEmail(result.body.data.email);
-      setVerifyEmail(result.body.data.email);
-      setViewPhase('verify');
-      setNotice({
-        message: 'The original active code has been resent with a fresh expiry.',
-        title: 'OTP resent',
-        tone: 'success',
-      });
-      if (!IS_PRODUCTION_BUILD) {
-        await refreshInbox();
-      }
-    } catch {
-      setNotice(createNetworkNotice());
-    } finally {
-      setPendingAction(null);
-    }
+    await runOtpSubmission(
+      'resend',
+      () => resendOtp({ email }),
+      async (data) => {
+        setMetadata(data);
+        setVerification(null);
+        setCode('');
+        setEmail(data.email);
+        setVerifyEmail(data.email);
+        setViewPhase('verify');
+        setNotice({
+          message: 'The original active code has been resent with a fresh expiry.',
+          title: 'OTP resent',
+          tone: 'success',
+        });
+        if (!IS_PRODUCTION_BUILD) {
+          await refreshInbox();
+        }
+      },
+    );
   }
 
   async function handleVerifyOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (isBusy) {
-      return;
-    }
-
-    setPendingAction('verify');
-    setNotice(null);
-
-    try {
-      const result = await verifyOtp({ code: normalisedCode, email: verifyEmail });
-
-      if (!result.body.ok) {
-        setNotice(createErrorNotice(result.body.error));
-        return;
-      }
-
-      setVerification(result.body.data);
-      setCode('');
-      setViewPhase('success');
-    } catch {
-      setNotice(createNetworkNotice());
-    } finally {
-      setPendingAction(null);
-    }
+    await runOtpSubmission(
+      'verify',
+      () => verifyOtp({ code: normalisedCode, email: verifyEmail }),
+      (data) => {
+        setVerification(data);
+        setCode('');
+        setViewPhase('success');
+      },
+    );
   }
 
   function returnToStart() {
@@ -421,8 +459,8 @@ function App() {
     try {
       const result = await updateOtpSettings(parsedSettings);
 
-      if (!result.body.ok) {
-        setSettingsError(result.body.error.message);
+      if (result.kind !== 'success') {
+        setSettingsError(getApiResultMessage(result));
         return;
       }
 
@@ -447,28 +485,31 @@ function App() {
       <div className="pointer-events-none fixed inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-soft-blue/50 to-transparent" />
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col justify-center px-4 py-5 sm:px-6 lg:px-8">
-        <header className="mx-auto flex w-full max-w-xl items-center justify-between gap-4">
+        <header className="mx-auto flex w-full max-w-xl flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 text-lg font-medium uppercase tracking-wide text-text-secondary shadow-panel">
               <Icon name="shield" className="h-8 w-8 text-soft-blue" />
               <span className="text-white">OTP Guard</span>
             </div>
           </div>
-          <button
-            aria-busy={settingsLoading}
-            aria-haspopup="dialog"
-            className="inline-flex h-11 min-w-[7.5rem] shrink-0 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-raised/60 px-4 text-sm font-semibold text-text-primary shadow-panel transition hover:border-border-active hover:bg-surface-raised active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
-            disabled={settingsLoading}
-            onClick={openSettings}
-            type="button"
-          >
-            {settingsLoading ? (
-              <LoadingSpinner />
-            ) : (
-              <Icon name="gear" className="h-4 w-4 text-soft-blue" />
-            )}
-            {settingsLoading ? 'Loading' : 'Settings'}
-          </button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <ApiReadinessBadge readiness={apiReadiness} />
+            <button
+              aria-busy={settingsLoading}
+              aria-haspopup="dialog"
+              className="inline-flex h-11 min-w-[7.5rem] shrink-0 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface-raised/60 px-4 text-sm font-semibold text-text-primary shadow-panel transition hover:border-border-active hover:bg-surface-raised active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
+              disabled={settingsLoading}
+              onClick={openSettings}
+              type="button"
+            >
+              {settingsLoading ? (
+                <LoadingSpinner />
+              ) : (
+                <Icon name="gear" className="h-4 w-4 text-soft-blue" />
+              )}
+              {settingsLoading ? 'Loading' : 'Settings'}
+            </button>
+          </div>
         </header>
 
         <section className="relative py-3">
@@ -729,6 +770,49 @@ function App() {
         onSubmit={handleSaveSettings}
       />
     </main>
+  );
+}
+
+function ApiReadinessBadge({ readiness }: { readiness: ApiReadiness }) {
+  const isWaiting = readiness === 'checking' || readiness === 'starting';
+  const copy: Record<ApiReadiness, { label: string; title: string }> = {
+    checking: {
+      label: 'Waiting for secure channel',
+      title: 'API is waking up',
+    },
+    ready: {
+      label: 'Secure channel ready',
+      title: 'API ready',
+    },
+    starting: {
+      label: 'Waiting for secure channel',
+      title: 'API is waking up',
+    },
+    unavailable: {
+      label: 'Try again shortly',
+      title: 'API unavailable',
+    },
+  };
+  const tone =
+    readiness === 'ready'
+      ? 'border-success/30 bg-success/10 text-emerald-100'
+      : readiness === 'unavailable'
+        ? 'border-warning/40 bg-warning/10 text-amber-100'
+        : 'border-border-active/45 bg-primary-blue/10 text-sky-100';
+
+  return (
+    <div
+      aria-live="polite"
+      className={`inline-flex h-11 min-w-[11.5rem] items-center gap-2 rounded-xl border px-3 text-left shadow-panel backdrop-blur-xl ${tone}`}
+    >
+      {isWaiting ? <LoadingSpinner /> : <span className="h-2 w-2 rounded-full bg-current" />}
+      <span className="min-w-0">
+        <span className="block text-xs font-semibold leading-4">{copy[readiness].title}</span>
+        <span className="block truncate text-[11px] leading-4 text-text-secondary">
+          {copy[readiness].label}
+        </span>
+      </span>
+    </div>
   );
 }
 
@@ -1261,13 +1345,82 @@ function createErrorNotice(
   const validationIssues = Array.isArray(error.details)
     ? error.details.filter(isValidationIssue)
     : undefined;
+  const isInternalServerError = error.code === 'INTERNAL_SERVER_ERROR';
 
   return {
-    message: error.message,
+    message: isInternalServerError
+      ? 'The API returned a structured internal server error. This is separate from Render wake-up time.'
+      : error.message,
     title: errorTitles[error.code] ?? error.code,
     tone: 'error',
     ...(validationIssues?.length ? { validationIssues } : {}),
   };
+}
+
+function createNoticeFromApiResult(
+  result: ApiResult<unknown, ValidationIssue[] | Record<string, unknown>> & {
+    wakeTimedOut?: boolean;
+  },
+): Notice {
+  if (result.kind === 'api-error') {
+    return createErrorNotice(result.body.error);
+  }
+
+  if (result.kind === 'api-starting') {
+    return createApiStartingNotice(result.wakeTimedOut);
+  }
+
+  if (result.kind === 'network-error') {
+    return {
+      message: result.wakeTimedOut
+        ? 'The secure channel did not become ready in time. Please try again shortly.'
+        : 'The API could not be reached. It may still be waking up or the API URL may be unavailable.',
+      title: result.wakeTimedOut ? 'API unavailable' : 'API unreachable',
+      tone: 'error',
+    };
+  }
+
+  if (result.kind === 'malformed-response') {
+    return {
+      message: result.message,
+      title: 'Unexpected API response',
+      tone: 'error',
+    };
+  }
+
+  return {
+    message: 'The API response could not be classified.',
+    title: 'Unexpected API response',
+    tone: 'error',
+  };
+}
+
+function createApiStartingNotice(wakeTimedOut = false): Notice {
+  return {
+    message: wakeTimedOut
+      ? 'The API did not become ready in time. The submitted action was not completed.'
+      : 'Waiting for secure channel. The API may be waking up on Render.',
+    title: wakeTimedOut ? 'API unavailable' : 'API is waking up',
+    tone: wakeTimedOut ? 'error' : 'info',
+  };
+}
+
+function getApiResultMessage(
+  result: ApiResult<unknown, ValidationIssue[] | Record<string, unknown>>,
+) {
+  if (result.kind === 'api-error') {
+    return result.body.error.message;
+  }
+
+  if (result.kind === 'api-starting') {
+    return 'API is waking up. Waiting for secure channel.';
+  }
+
+  if (result.kind === 'success') {
+    return 'The API request completed.';
+  }
+
+  return result.message;
 }
 
 function createNetworkNotice(): Notice {
