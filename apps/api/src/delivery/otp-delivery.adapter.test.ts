@@ -50,6 +50,7 @@ describe('ProductionOtpDeliveryAdapter', () => {
     expect(sentMessages).toEqual([
       {
         from: 'Entrostat OTP <otp@example.com>',
+        html: expect.stringContaining('Use this code to complete your OTP Guard verification.'),
         subject: 'Your OTP Guard code',
         text: [
           'Your OTP Guard code is 123456.',
@@ -59,11 +60,60 @@ describe('ProductionOtpDeliveryAdapter', () => {
         to: 'person@example.com',
       },
     ]);
+    expect(sentMessages[0]?.html).toContain('OTP Guard');
+    expect(sentMessages[0]?.html).toContain('123456');
+    expect(sentMessages[0]?.html).toContain('24 May 2026, 12:05 UTC');
+    expect(sentMessages[0]?.html).toContain(
+      'If you did not request this code, you can safely ignore this email.',
+    );
   });
 });
 
 describe('ResendHttpEmailClient', () => {
-  it('posts email payloads to the Resend email API', async () => {
+  it('posts email payloads with HTML to the Resend email API', async () => {
+    const requests: unknown[] = [];
+    const client = new ResendHttpEmailClient('resend_test_key', async (url, init) => {
+      requests.push({ init, url });
+
+      return {
+        ok: true,
+        status: 200,
+        async text() {
+          return '';
+        },
+      };
+    });
+
+    await client.send({
+      from: 'Entrostat OTP <otp@example.com>',
+      html: '<p>Your OTP Guard code is <strong>123456</strong>.</p>',
+      subject: 'Your OTP Guard code',
+      text: 'Your OTP Guard code is 123456.',
+      to: 'person@example.com',
+    });
+
+    expect(requests).toEqual([
+      {
+        init: {
+          body: JSON.stringify({
+            from: 'Entrostat OTP <otp@example.com>',
+            html: '<p>Your OTP Guard code is <strong>123456</strong>.</p>',
+            subject: 'Your OTP Guard code',
+            text: 'Your OTP Guard code is 123456.',
+            to: 'person@example.com',
+          }),
+          headers: {
+            Authorization: 'Bearer resend_test_key',
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+        },
+        url: 'https://api.resend.com/emails',
+      },
+    ]);
+  });
+
+  it('omits HTML from the Resend email API payload when it is not provided', async () => {
     const requests: unknown[] = [];
     const client = new ResendHttpEmailClient('resend_test_key', async (url, init) => {
       requests.push({ init, url });
